@@ -46,40 +46,44 @@ class SettingsScreen extends StatelessWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Column(
-                  children: CounterPalette.values
-                      .map(
-                        (palette) => RadioListTile<CounterPalette>(
-                          value: palette,
-                          groupValue: controller.settings.palette,
-                          onChanged: (value) {
-                            if (value != null) unawaited(controller.setPalette(value));
-                          },
-                          title: Text(palette.label),
-                          secondary: _PaletteSwatch(palette: palette),
-                        ),
-                      )
-                      .toList(),
+                child: RadioGroup<CounterPalette>(
+                  groupValue: controller.settings.palette,
+                  onChanged: (value) {
+                    if (value != null) unawaited(controller.setPalette(value));
+                  },
+                  child: Column(
+                    children: CounterPalette.values
+                        .map(
+                          (palette) => RadioListTile<CounterPalette>(
+                            value: palette,
+                            title: Text(palette.label),
+                            secondary: _PaletteSwatch(palette: palette),
+                          ),
+                        )
+                        .toList(),
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
             const _SectionTitle(title: 'Counter text'),
             Card(
-              child: Column(
-                children: TextTone.values
-                    .map(
-                      (tone) => RadioListTile<TextTone>(
-                        value: tone,
-                        groupValue: controller.settings.textTone,
-                        onChanged: (value) {
-                          if (value != null) unawaited(controller.setTextTone(value));
-                        },
-                        title: Text(tone.label),
-                        secondary: _TextSwatch(tone: tone),
-                      ),
-                    )
-                    .toList(),
+              child: RadioGroup<TextTone>(
+                groupValue: controller.settings.textTone,
+                onChanged: (value) {
+                  if (value != null) unawaited(controller.setTextTone(value));
+                },
+                child: Column(
+                  children: TextTone.values
+                      .map(
+                        (tone) => RadioListTile<TextTone>(
+                          value: tone,
+                          title: Text(tone.label),
+                          secondary: _TextSwatch(tone: tone),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
             ),
             const SizedBox(height: 22),
