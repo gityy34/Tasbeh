@@ -7,6 +7,8 @@ set -eu
 distribution_url=$(sed -n 's/^distributionUrl=//p' gradle/wrapper/gradle-wrapper.properties | sed 's/\\:/:/g')
 distribution_zip=${distribution_url##*/}
 distribution_name=${distribution_zip%.zip}
+distribution_directory=${distribution_name%-all}
+distribution_directory=${distribution_directory%-bin}
 gradle_home=${GRADLE_USER_HOME:-"$HOME/.gradle"}
 gradle_dir="$gradle_home/tasbeh-wrapper/$distribution_name"
 
@@ -17,7 +19,7 @@ if [ ! -x "$gradle_dir/bin/gradle" ]; then
   unzip -q "$temp_dir/gradle.zip" -d "$temp_dir/extracted"
   mkdir -p "$gradle_home/tasbeh-wrapper"
   rm -rf "$gradle_dir"
-  mv "$temp_dir/extracted/$distribution_name" "$gradle_dir"
+  mv "$temp_dir/extracted/$distribution_directory" "$gradle_dir"
 fi
 
 exec "$gradle_dir/bin/gradle" "$@"
