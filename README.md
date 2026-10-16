@@ -32,3 +32,7 @@ The APK is written to `build/app/outputs/flutter-apk/app-release.apk`; the AAB i
 
 The project does not request runtime permissions. Configure a real Android release keystore before publishing; no signing credentials are included here.
 
+## GitHub Actions
+
+The repository workflow in `.github/workflows/flutter.yml` runs analysis and tests, then builds APK and AAB artifacts on GitHub's Android-capable runner. See [docs/release.md](docs/release.md) for the exact procedure.
+
