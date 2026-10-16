@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Small checked-in wrapper entry point. Flutter's generated projects normally
+# replace this with the Gradle wrapper for the selected Flutter release.
+if command -v gradle >/dev/null 2>&1; then
+  exec gradle "$@"
+fi
+
+if [ -f "gradle/wrapper/gradle-wrapper.jar" ]; then
+  exec java -jar gradle/wrapper/gradle-wrapper.jar "$@"
+fi
+
+if [ -f "local.properties" ]; then
+  FLUTTER_SDK_PATH=$(sed -n 's/^flutter.sdk=//p' local.properties)
+  FLUTTER_WRAPPER="$FLUTTER_SDK_PATH/bin/cache/artifacts/gradle_wrapper/gradle-wrapper.jar"
+  if [ -f "$FLUTTER_WRAPPER" ]; then
+    exec java -jar "$FLUTTER_WRAPPER" "$@"
+  fi
+fi
+
+echo "Gradle is not installed. Install Flutter and Android tooling, then run: flutter build apk --release" >&2
+exit 1
+
