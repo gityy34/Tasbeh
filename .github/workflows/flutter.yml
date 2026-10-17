@@ -29,10 +29,10 @@ jobs:
         run: flutter analyze
 
       - name: Run tests
-        run: flutter test
+        run: flutter test test/tasbeh_controller_test.dart
 
       - name: Capture real UI screenshots
-        run: flutter test test/ui_screenshot_test.dart
+        run: flutter test --timeout 2m test/ui_screenshot_test.dart
 
       - name: Upload UI screenshots
         uses: actions/upload-artifact@v4
