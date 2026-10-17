@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+const bismillah = 'بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ';
+
 class SplashArtwork extends StatelessWidget {
   const SplashArtwork({super.key, required this.isNight});
 
