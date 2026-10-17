@@ -23,21 +23,32 @@ class SettingsScreen extends StatelessWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: SegmentedButton<AppThemeMode>(
-                  segments: AppThemeMode.values
-                      .map(
-                        (mode) => ButtonSegment<AppThemeMode>(
-                          value: mode,
-                          label: Text(mode.label),
-                          icon: Icon(_themeIcon(mode)),
-                        ),
-                      )
-                      .toList(),
-                  selected: {controller.settings.themeMode},
-                  onSelectionChanged: (selection) {
-                    final mode = selection.isEmpty ? null : selection.first;
-                    if (mode != null) unawaited(controller.setThemeMode(mode));
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SegmentedButton<AppThemeMode>(
+                      segments: AppThemeMode.values
+                          .map(
+                            (mode) => ButtonSegment<AppThemeMode>(
+                              value: mode,
+                              label: Text(mode.label),
+                              icon: Icon(_themeIcon(mode)),
+                            ),
+                          )
+                          .toList(),
+                      selected: {controller.settings.themeMode},
+                      onSelectionChanged: (selection) {
+                        final mode = selection.isEmpty ? null : selection.first;
+                        if (mode != null) unawaited(controller.setThemeMode(mode));
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Auto: Day 06:00–16:59 · Night 17:00–05:59',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
             ),

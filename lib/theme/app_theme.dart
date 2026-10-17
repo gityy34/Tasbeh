@@ -59,13 +59,20 @@ CounterColors counterColorsFor(
   };
 }
 
+const autoDayStartHour = 6;
+const autoNightStartHour = 17;
+
+bool isAutoDaytime(DateTime now) {
+  final minuteOfDay = now.hour * 60 + now.minute;
+  return minuteOfDay >= autoDayStartHour * 60 &&
+      minuteOfDay < autoNightStartHour * 60;
+}
+
 Brightness effectiveBrightness(AppThemeMode mode, DateTime now) {
   return switch (mode) {
     AppThemeMode.day => Brightness.light,
     AppThemeMode.night => Brightness.dark,
-    AppThemeMode.auto => now.hour >= 6 && now.hour < 18
-        ? Brightness.light
-        : Brightness.dark,
+    AppThemeMode.auto => isAutoDaytime(now) ? Brightness.light : Brightness.dark,
   };
 }
 

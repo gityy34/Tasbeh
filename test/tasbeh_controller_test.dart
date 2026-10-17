@@ -105,7 +105,23 @@ void main() {
     });
   });
 
-  test('auto brightness follows day and night hours', () {
+  test('auto brightness follows the 6 AM and 5 PM boundaries', () {
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 5, 59)),
+      Brightness.dark,
+    );
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 6, 0)),
+      Brightness.light,
+    );
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 16, 59)),
+      Brightness.light,
+    );
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 17, 0)),
+      Brightness.dark,
+    );
     expect(
       effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 12)),
       Brightness.light,
