@@ -31,6 +31,16 @@ jobs:
       - name: Run tests
         run: flutter test
 
+      - name: Capture real UI screenshots
+        run: flutter test test/ui_screenshot_test.dart
+
+      - name: Upload UI screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasbeh-ui-screenshots
+          if-no-files-found: error
+          path: build/screenshots/*.png
+
       - name: Build universal release APK
         run: flutter build apk --release
 
