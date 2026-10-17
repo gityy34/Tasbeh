@@ -45,7 +45,7 @@ void main() {
     required TasbehController controller,
   }) async {
     final key = ValueKey<String>('screenshot-$name');
-    tester.binding.setSurfaceSize(viewport);
+    await tester.binding.setSurfaceSize(viewport);
     await tester.pumpWidget(frame(child: child, key: key));
     await tester.pump(const Duration(milliseconds: 250));
 
@@ -101,6 +101,6 @@ void main() {
       controller: historyController,
     );
 
-    tester.binding.setSurfaceSize(null);
+    await tester.binding.setSurfaceSize(null);
   });
 }
