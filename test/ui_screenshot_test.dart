@@ -34,7 +34,10 @@ void main() {
         palette: CounterPalette.water,
         textTone: TextTone.white,
       ),
-      home: RepaintBoundary(key: key, child: child),
+      home: RepaintBoundary(
+        key: key,
+        child: TickerMode(enabled: false, child: child),
+      ),
     );
   }
 
