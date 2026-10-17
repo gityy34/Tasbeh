@@ -35,6 +35,13 @@ CounterColors counterColorsFor(
         accentSoft: const Color(0xFFB9EEFF),
         foreground: foreground,
       ),
+    CounterPalette.realisticWater => CounterColors(
+        top: const Color(0xFF9CEBFF),
+        bottom: const Color(0xFF0878D1),
+        accent: const Color(0xFF28B8F2),
+        accentSoft: const Color(0xFFD9F8FF),
+        foreground: foreground,
+      ),
     CounterPalette.nature => CounterColors(
         top: const Color(0xFF8FD694),
         bottom: const Color(0xFF237A57),

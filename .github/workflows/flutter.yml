@@ -29,7 +29,7 @@ jobs:
         run: flutter analyze
 
       - name: Run tests
-        run: flutter test test/tasbeh_controller_test.dart
+        run: flutter test test/tasbeh_controller_test.dart test/water_counter_test.dart
 
       - name: Capture real UI screenshots
         run: flutter test --update-goldens --timeout 2m test/ui_screenshot_test.dart

@@ -84,14 +84,18 @@ void main() {
 
     test('settings changes persist', () async {
       await controller.setThemeMode(AppThemeMode.night);
-      await controller.setPalette(CounterPalette.nature);
+      await controller.setPalette(CounterPalette.realisticWater);
       await controller.setTextTone(TextTone.cream);
 
       final restored = TasbehController(storage);
       await restored.initialize();
       expect(restored.settings.themeMode, AppThemeMode.night);
-      expect(restored.settings.palette, CounterPalette.nature);
+      expect(restored.settings.palette, CounterPalette.realisticWater);
       expect(restored.settings.textTone, TextTone.cream);
+    });
+
+    test('realistic water theme has a user-facing label', () {
+      expect(CounterPalette.realisticWater.label, 'Realistic Water Theme');
     });
 
     test('reset returns the count to zero and persists it', () async {

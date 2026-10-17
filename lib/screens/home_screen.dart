@@ -115,6 +115,8 @@ class _HomeContent extends StatelessWidget {
                       target: controller.target,
                       progress: controller.progress,
                       colors: counterColors,
+                      palette: controller.settings.palette,
+                      isDark: isDark,
                       onTap: () => unawaited(controller.increment()),
                     ),
                   ),
