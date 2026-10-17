@@ -32,14 +32,14 @@ jobs:
         run: flutter test test/tasbeh_controller_test.dart
 
       - name: Capture real UI screenshots
-        run: flutter test --timeout 2m test/ui_screenshot_test.dart
+        run: flutter test --update-goldens --timeout 2m test/ui_screenshot_test.dart
 
       - name: Upload UI screenshots
         uses: actions/upload-artifact@v4
         with:
           name: tasbeh-ui-screenshots
           if-no-files-found: error
-          path: build/screenshots/*.png
+          path: test/goldens/*.png
 
       - name: Build universal release APK
         run: flutter build apk --release

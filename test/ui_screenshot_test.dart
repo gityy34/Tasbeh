@@ -1,8 +1,4 @@
-import 'dart:io';
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tasbeh/models/app_models.dart';
@@ -18,7 +14,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const viewport = Size(390, 844);
-  final screenshotDirectory = Directory('build/screenshots')..createSync(recursive: true);
 
   Future<TasbehController> createController() async {
     final controller = TasbehController(MemoryStorageService());
@@ -52,12 +47,10 @@ void main() {
     await tester.pumpWidget(frame(child: child, key: key));
     await tester.pump(const Duration(milliseconds: 250));
 
-    final boundary = tester.renderObject<RenderRepaintBoundary>(find.byKey(key));
-    final image = await boundary.toImage(pixelRatio: 1);
-    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    final bytes = byteData!.buffer.asUint8List();
-    File('${screenshotDirectory.path}/$name.png').writeAsBytesSync(bytes);
-    image.dispose();
+    await expectLater(
+      find.byKey(key),
+      matchesGoldenFile('goldens/$name.png'),
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
