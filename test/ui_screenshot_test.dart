@@ -1,19 +1,18 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/models/app_models.dart';
-import '../lib/services/storage_service.dart';
-import '../lib/screens/history_screen.dart';
-import '../lib/screens/home_screen.dart';
-import '../lib/screens/settings_screen.dart';
-import '../lib/screens/splash_screen.dart';
-import '../lib/state/tasbeh_controller.dart';
-import '../lib/theme/app_theme.dart';
+import 'package:tasbeh/models/app_models.dart';
+import 'package:tasbeh/screens/history_screen.dart';
+import 'package:tasbeh/screens/home_screen.dart';
+import 'package:tasbeh/screens/settings_screen.dart';
+import 'package:tasbeh/screens/splash_screen.dart';
+import 'package:tasbeh/services/storage_service.dart';
+import 'package:tasbeh/state/tasbeh_controller.dart';
+import 'package:tasbeh/theme/app_theme.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
