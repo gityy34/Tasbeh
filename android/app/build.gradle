@@ -20,7 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.example.tasbeh"
-        minSdk = flutter.minSdkVersion
+        // The supported product baseline is Android 12 (API 31).
+        minSdk = 31
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -28,8 +29,9 @@ android {
 
     buildTypes {
         release {
-            // Add a real release signingConfig before publishing to Google Play.
-            // Flutter can still produce an unsigned release artifact for testing.
+            // This makes the CI demo APK directly installable. Replace this with
+            // a private production signing config before publishing to Google Play.
+            signingConfig = signingConfigs.getByName("debug")
             minifyEnabled false
             shrinkResources false
         }

@@ -25,14 +25,26 @@ flutter run
 
 ```sh
 flutter build apk --release
+flutter build apk --release --split-per-abi
 flutter build appbundle --release
 ```
 
-The APK is written to `build/app/outputs/flutter-apk/app-release.apk`; the AAB is written to `build/app/outputs/bundle/release/app-release.aab`.
+The universal APK is written to `build/app/outputs/flutter-apk/app-release.apk`.
+Smaller device-specific APKs are written to the same directory as
+`app-arm64-v8a-release.apk`, `app-armeabi-v7a-release.apk`, and
+`app-x86_64-release.apk`. The AAB is written to
+`build/app/outputs/bundle/release/app-release.aab`.
+
+The app targets Android 12 (API 31) and newer. CI produces a directly
+installable demo APK signed with the runner's debug key; use a private release
+keystore before publishing to Google Play.
 
 The project does not request runtime permissions. Configure a real Android release keystore before publishing; no signing credentials are included here.
 
 ## GitHub Actions
 
-The repository workflow in `.github/workflows/flutter.yml` runs analysis and tests, then builds APK and AAB artifacts on GitHub's Android-capable runner. See [docs/release.md](docs/release.md) for the exact procedure.
+The repository workflow in `.github/workflows/flutter.yml` runs analysis and tests,
+builds a universal APK, smaller ABI-specific APKs, and an AAB, then verifies APK
+signatures and package integrity before uploading separate artifacts. See
+[docs/release.md](docs/release.md) for the exact procedure.
 
