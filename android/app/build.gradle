@@ -20,8 +20,9 @@ android {
 
     defaultConfig {
         applicationId = "com.example.tasbeh"
-        // The supported product baseline is Android 12 (API 31).
-        minSdk = 31
+        // Keep the APK installable on current Android phones and older devices;
+        // Flutter and the app's dependencies support API 21 and above.
+        minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
