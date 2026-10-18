@@ -107,6 +107,13 @@ class TasbehController extends ChangeNotifier {
     await _persist();
   }
 
+  Future<void> setVibrateOnTarget(bool enabled) async {
+    if (_settings.vibrateOnTarget == enabled) return;
+    _settings = _settings.copyWith(vibrateOnTarget: enabled);
+    notifyListeners();
+    await _persist();
+  }
+
   Future<void> saveCheckpoint() async {
     final checkpoint = TasbehCheckpoint(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
