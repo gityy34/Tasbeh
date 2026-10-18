@@ -2,7 +2,9 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    branches: [main]
+    # Temporarily include the feature branch to build this versioned release.
+    # Restore this to [main] after the release is published.
+    branches: [main, realistic-water-theme]
   pull_request:
   workflow_dispatch:
 
@@ -79,11 +81,15 @@ jobs:
             "${build_tools_dir}/apksigner" verify --verbose "${apk}"
           done
 
-          # Make the safe universal package the first, clearly named download.
-          cp build/app/outputs/flutter-apk/app-release.apk tasbeh-universal.apk
-          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk tasbeh-arm64.apk
-          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk tasbeh-armv7.apk
-          cp build/app/outputs/flutter-apk/app-x86_64-release.apk tasbeh-x86_64.apk
+          version_name="$(sed -n 's/^version: \([^+[:space:]]*\).*/\1/p' pubspec.yaml)"
+          asset_prefix="tasbeh-v${version_name}"
+          echo "Preparing ${asset_prefix} APKs with build number ${GITHUB_RUN_NUMBER}"
+
+          # Make the safe universal package the first, clearly versioned download.
+          cp build/app/outputs/flutter-apk/app-release.apk "${asset_prefix}-universal.apk"
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "${asset_prefix}-arm64.apk"
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "${asset_prefix}-armv7.apk"
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk "${asset_prefix}-x86_64.apk"
 
       - name: Publish direct demo release
         if: github.event_name != 'pull_request'
@@ -92,14 +98,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tag="tasbeh-demo-${GITHUB_RUN_NUMBER}"
+          version_name="$(sed -n 's/^version: \([^+[:space:]]*\).*/\1/p' pubspec.yaml)"
+          asset_prefix="tasbeh-v${version_name}"
+          tag="tasbeh-v${version_name}-build${GITHUB_RUN_NUMBER}"
           gh release create "${tag}" \
             --repo "${GITHUB_REPOSITORY}" \
             --target "${GITHUB_SHA}" \
-            --title "Tasbeh demo ${GITHUB_RUN_NUMBER}" \
-            --notes "Corrected Tasbeh demo. Install tasbeh-universal.apk if your device architecture is unknown; use an ABI-specific APK only when the device architecture is confirmed." \
-            tasbeh-universal.apk \
-            tasbeh-arm64.apk \
-            tasbeh-armv7.apk \
-            tasbeh-x86_64.apk
+            --title "Tasbeh v${version_name}" \
+            --notes "Tasbeh v${version_name}. Install the universal APK if your device architecture is unknown; use an ABI-specific APK only when the device architecture is confirmed." \
+            "${asset_prefix}-universal.apk" \
+            "${asset_prefix}-arm64.apk" \
+            "${asset_prefix}-armv7.apk" \
+            "${asset_prefix}-x86_64.apk"
 
