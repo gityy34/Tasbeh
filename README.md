@@ -51,6 +51,9 @@ increments the version name (`v1.0.3`, `v1.0.4`, and so on). GitHub Actions uses
 the workflow run number as the Android build number and includes the version in
 each APK filename and release tag.
 
+This release includes the compact target panel, enlarged counter surface, and
+the optional target-completion haptic setting.
+
 ## GitHub Actions
 
 The repository workflow in `.github/workflows/flutter.yml` runs analysis and tests,
