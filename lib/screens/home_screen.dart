@@ -235,8 +235,8 @@ class _TasbeehPickerSheet extends StatelessWidget {
     final theme = Theme.of(context);
     final maxHeight = MediaQuery.sizeOf(context).height * 0.76;
     return SafeArea(
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
+      child: SizedBox(
+        height: maxHeight,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
           child: Column(
