@@ -46,13 +46,13 @@ The project does not request runtime permissions. Configure a real Android relea
 
 ## Versioning
 
-The current downloadable release is `v1.0.4`. Every new downloadable APK
-increments the version name (`v1.0.4`, `v1.0.5`, and so on). GitHub Actions uses
+The current downloadable release is `v1.0.5`. Every new downloadable APK
+increments the version name (`v1.0.5`, `v1.0.6`, and so on). GitHub Actions uses
 the workflow run number as the Android build number and includes the version in
 each APK filename and release tag.
 
-The `v1.0.4` demo uses the unique `com.gityy34.tasbeh` application ID so it
-does not conflict with older `com.example.tasbeh` demo installations.
+The `v1.0.5` demo uses the unique `com.gityy34.tasbeh` application ID and
+legacy native-library packaging for Android 15/16 installation compatibility.
 
 ## GitHub Actions
 
