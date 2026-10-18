@@ -9,6 +9,27 @@ The implementation follows the current Flutter platform guidance available for t
 - Android startup: the native launch theme is intentionally minimal, while the branded day/night splash is rendered by Flutter after the engine is ready. This avoids putting a large bitmap in the Android launch resource.
 - Accessibility: interactive controls use semantic labels and at least 48 logical pixels of touch area; progress is also exposed as text rather than relying on color alone.
 
+## Realistic Water Theme decision
+
+The uploaded reference was treated as a visual direction, not as a static screen. The
+counter remains a real Flutter layout so the count, target, progress, accessibility
+semantics, and tap target continue to work.
+
+For the water effect, the practical options were:
+
+- A Flutter `CustomPainter` driven by a finite `AnimationController`: no new dependency,
+  precise control over a falling droplet, splash rings, highlights, and the settling time.
+- Lottie/Rive: useful for a pre-authored animation, but adds an asset/runtime dependency
+  and does not naturally respond to the counter's live progress and theme colors.
+- A fragment shader: potentially more physically detailed, but adds shader lifecycle,
+  device compatibility, and tuning complexity that is not justified for this counter.
+
+The implementation uses the first option. The existing Water palette keeps its ambient
+wave behavior; `Realistic Water Theme` starts a 2.2-second impact animation on each tap,
+then stops ticking until the next tap. This keeps the effect responsive on ordinary
+Android phones and avoids an always-running high-cost effect. The theme's palette and
+text-color choices remain in Settings; no color controls are added to the counter page.
+
 Official references:
 
 - https://docs.flutter.dev/app-architecture
