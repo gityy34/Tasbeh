@@ -72,3 +72,12 @@ explicit completion signal from the controller; the UI uses Flutter's built-in
 re-triggering haptics on taps after completion. Blank space in the main content is a
 counting surface, while all visible controls retain their own actions.
 
+The follow-up layout keeps the larger count-only water circle shared by every
+palette and moves Target, its five compact selectors, Reset, and Save into one
+responsive panel bounded by top and bottom dividers. Completion progress text is
+not duplicated in the visual counter; the selected target remains available
+through the controls and accessibility labels. Target completion haptics are
+enabled by default and persisted through settings, with a user-facing switch in
+Settings to turn them off. Flutter's built-in haptic API is sufficient, so no
+runtime permission or extra package is needed.
+
