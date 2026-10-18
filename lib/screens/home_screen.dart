@@ -161,6 +161,9 @@ class _TasbeehSelector extends StatelessWidget {
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.76,
+      ),
       showDragHandle: true,
       builder: (context) => _TasbeehPickerSheet(
         selectedId: controller.selectedTasbeeh.id,
