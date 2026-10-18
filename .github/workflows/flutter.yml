@@ -18,6 +18,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Remove previous Tasbeh artifacts
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -54,15 +55,19 @@ jobs:
         run: flutter test --update-goldens --timeout 2m test/ui_screenshot_test.dart
 
       - name: Build universal release APK
+        if: github.event_name != 'pull_request'
         run: flutter build apk --release
 
       - name: Build smaller ABI-specific APKs
+        if: github.event_name != 'pull_request'
         run: flutter build apk --release --split-per-abi
 
       - name: Build release App Bundle
+        if: github.event_name != 'pull_request'
         run: flutter build appbundle --release
 
       - name: Verify APK signatures and package integrity
+        if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
@@ -74,6 +79,7 @@ jobs:
           done
 
       - name: Publish direct demo release
+        if: github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
