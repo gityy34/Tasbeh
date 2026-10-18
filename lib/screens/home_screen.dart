@@ -57,7 +57,9 @@ class _HomeContent extends StatelessWidget {
 
   Future<void> _increment() async {
     final reachedTarget = await controller.increment();
-    if (reachedTarget) await HapticFeedback.mediumImpact();
+    if (reachedTarget && controller.settings.vibrateOnTarget) {
+      await HapticFeedback.mediumImpact();
+    }
   }
 
   @override
@@ -81,9 +83,9 @@ class _HomeContent extends StatelessWidget {
                 child: Column(
                   children: [
                     _TasbeehSelector(controller: controller),
-                    SizedBox(height: compact ? 12 : 18),
+                    SizedBox(height: compact ? 10 : 16),
                     SizedBox(
-                      width: mathMin(constraints.maxWidth, 430),
+                      width: mathMin(constraints.maxWidth, 520),
                       child: WaterCounter(
                         count: controller.count,
                         target: controller.target,
@@ -94,20 +96,11 @@ class _HomeContent extends StatelessWidget {
                         onTap: () => unawaited(_increment()),
                       ),
                     ),
-                    SizedBox(height: compact ? 12 : 20),
-                    _TargetSection(controller: controller),
-                    SizedBox(height: compact ? 14 : 20),
-                    _HomeActions(
+                    SizedBox(height: compact ? 10 : 16),
+                    _TargetControlsPanel(
                       controller: controller,
                       onReset: () => _confirmReset(context),
                       onSaveCheckpoint: () => _saveCheckpoint(context),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      controller.progressLabel,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: isDark ? Colors.white70 : Colors.black54,
-                          ),
                     ),
                   ],
                 ),
@@ -307,6 +300,47 @@ class _TasbeehPickerSheet extends StatelessWidget {
   }
 }
 
+class _TargetControlsPanel extends StatelessWidget {
+  const _TargetControlsPanel({
+    required this.controller,
+    required this.onReset,
+    required this.onSaveCheckpoint,
+  });
+
+  final TasbehController controller;
+  final VoidCallback onReset;
+  final VoidCallback onSaveCheckpoint;
+
+  @override
+  Widget build(BuildContext context) {
+    final dividerColor = Theme.of(context).colorScheme.outlineVariant.withValues(
+          alpha: 0.55,
+        );
+    return Container(
+      key: const ValueKey<String>('target-controls-panel'),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: dividerColor),
+          bottom: BorderSide(color: dividerColor),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(2, 12, 2, 14),
+      child: Column(
+        children: [
+          _TargetSection(controller: controller),
+          const SizedBox(height: 12),
+          _HomeActions(
+            controller: controller,
+            onReset: onReset,
+            onSaveCheckpoint: onSaveCheckpoint,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TargetSection extends StatelessWidget {
   const _TargetSection({required this.controller});
 
@@ -320,15 +354,15 @@ class _TargetSection extends StatelessWidget {
       children: [
         Text(
           'Target',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 8),
         LayoutBuilder(
           builder: (context, constraints) {
             final diameter =
-                ((constraints.maxWidth - 32) / 5).clamp(54.0, 72.0).toDouble();
+                ((constraints.maxWidth - 28) / 5).clamp(48.0, 64.0).toDouble();
             return Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: targets.map((target) {
@@ -360,11 +394,11 @@ class _TargetSection extends StatelessWidget {
                         child: Center(
                           child: Text(
                             label,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                   color: selected
                                       ? colorScheme.onPrimaryContainer
                                       : colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
                                 ),
                           ),
                         ),
@@ -465,7 +499,7 @@ class _RoundActionButton extends StatelessWidget {
           onTap: onPressed,
           customBorder: const CircleBorder(),
           child: SizedBox.square(
-            dimension: 64,
+            dimension: 58,
             child: Icon(icon, color: foreground, size: 29),
           ),
         ),
