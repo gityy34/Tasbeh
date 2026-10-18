@@ -35,11 +35,12 @@ Smaller device-specific APKs are written to the same directory as
 `app-x86_64-release.apk`. The AAB is written to
 `build/app/outputs/bundle/release/app-release.aab`.
 
-The app targets Android 12 (API 31) and newer. CI publishes the smaller
-`arm64-v8a` APK as the primary demo for modern phones and keeps the universal
-APK as a compatibility fallback. Both are directly installable demo APKs
-signed with the runner's debug key; use a private release keystore before
-publishing to Google Play.
+The app supports Android API 21 and newer, including Android 12+. CI publishes
+the universal APK as the primary demo because it contains the supported native
+ABIs and avoids an install failure caused by choosing the wrong device-specific
+APK. ABI-specific APKs are available only when the device architecture is
+confirmed. Demo APKs are signed with the runner's debug key; use a private
+release keystore before publishing to Google Play.
 
 The project does not request runtime permissions. Configure a real Android release keystore before publishing; no signing credentials are included here.
 
