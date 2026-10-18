@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.tasbeh"
+    namespace = "com.gityy34.tasbeh"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -19,7 +19,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.tasbeh"
+        applicationId = "com.gityy34.tasbeh"
         // Keep the APK installable on current Android phones and older devices;
         // Flutter and the app's dependencies support API 21 and above.
         minSdk = 21
