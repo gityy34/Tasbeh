@@ -53,6 +53,21 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
+            const _SectionTitle(title: 'Target completion'),
+            Card(
+              child: SwitchListTile.adaptive(
+                key: const ValueKey<String>('target-vibration-switch'),
+                secondary: const Icon(Icons.vibration_rounded),
+                title: const Text('Vibrate after target completion'),
+                subtitle: const Text(
+                  'Give a short haptic feedback when the selected target is reached.',
+                ),
+                value: controller.settings.vibrateOnTarget,
+                onChanged: (value) =>
+                    unawaited(controller.setVibrateOnTarget(value)),
+              ),
+            ),
+            const SizedBox(height: 24),
             const _SectionTitle(title: 'Counter theme'),
             Card(
               child: Padding(
