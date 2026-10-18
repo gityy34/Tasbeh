@@ -23,6 +23,7 @@ void main() {
       expect(controller.target, 100);
       expect(controller.progress, 0);
       expect(controller.isComplete, isFalse);
+      expect(controller.settings.vibrateOnTarget, isTrue);
     });
 
     test('increments, decrements, and persists the count', () async {
@@ -87,6 +88,7 @@ void main() {
       await controller.setPalette(CounterPalette.realisticWater);
       await controller.setTextTone(TextTone.cream);
       await controller.setTasbeeh('allahu-akbar');
+      await controller.setVibrateOnTarget(false);
 
       final restored = TasbehController(storage);
       await restored.initialize();
@@ -95,6 +97,7 @@ void main() {
       expect(restored.settings.textTone, TextTone.cream);
       expect(restored.selectedTasbeeh.label, 'Allahu Akbar');
       expect(restored.selectedTasbeeh.arabicText, 'ٱللَّهُ أَكْبَرُ');
+      expect(restored.settings.vibrateOnTarget, isFalse);
     });
 
     test('increment reports when the selected target is reached', () async {
@@ -161,6 +164,7 @@ void main() {
       settings: TasbehSettings(
         themeMode: AppThemeMode.night,
         tasbeehId: 'subhanallah',
+        vibrateOnTarget: false,
       ),
       checkpoints: <TasbehCheckpoint>[],
     );
@@ -169,6 +173,7 @@ void main() {
     expect(decoded.target, 100);
     expect(decoded.settings.themeMode, AppThemeMode.night);
     expect(decoded.settings.tasbeehId, 'subhanallah');
+    expect(decoded.settings.vibrateOnTarget, isFalse);
   });
 }
 
