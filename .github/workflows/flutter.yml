@@ -2,9 +2,7 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    # Temporary release trigger for the Android 16 compatibility build.
-    # Restore this gate to [main] after v1.0.5 is verified.
-    branches: [main, realistic-water-theme]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
