@@ -682,21 +682,21 @@ class _RealisticWaterPainter extends CustomPainter {
       final growth = _clamp01((count - threshold) / (50 - threshold));
       final bodyLength = size.width * (0.055 + growth * 0.04) * entry;
       final bodyHeight = bodyLength * 0.48;
-      final direction = math.sin(_motionTime * 0.75 + fish.phase) >= 0 ? 1.0 : -1.0;
+      final direction = math.sin(motionTime * 0.75 + fish.phase) >= 0 ? 1.0 : -1.0;
       final xBase = fish.kind == _FishKind.golden ? 0.38 : 0.62;
       final x = size.width * xBase +
-          math.sin(_motionTime * 0.65 + fish.phase) * size.width * 0.12;
+          math.sin(motionTime * 0.65 + fish.phase) * size.width * 0.12;
       final yRatio = fish.kind == _FishKind.golden ? 0.24 : 0.42;
       final y = waterLine +
           size.height *
-              (yRatio + math.sin(_motionTime * 0.5 + fish.phase) * 0.08);
+              (yRatio + math.sin(motionTime * 0.5 + fish.phase) * 0.08);
       final body = _fishColor(fish.kind)!;
 
       canvas.save();
       canvas.translate(x, y);
       canvas.scale(direction, 1);
 
-      final bubblePhase = _motionTime * 1.8 + fish.phase;
+      final bubblePhase = motionTime * 1.8 + fish.phase;
       for (var index = 0; index < 2; index++) {
         final bubbleProgress =
             (math.sin(bubblePhase + index * 1.7) + 1) / 2;
