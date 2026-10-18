@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: write
 
 jobs:
   verify-and-build:
@@ -15,6 +16,24 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+
+      - name: Remove previous Tasbeh artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          artifact_ids="$(gh api --paginate "/repos/${GITHUB_REPOSITORY}/actions/artifacts?per_page=100" \
+            --jq '.artifacts[] | select(.name | startswith("tasbeh-")) | .id')"
+          if [[ -z "${artifact_ids}" ]]; then
+            echo "No previous Tasbeh artifacts found."
+            exit 0
+          fi
+          while IFS= read -r artifact_id; do
+            [[ -z "${artifact_id}" ]] && continue
+            echo "Deleting Tasbeh artifact ${artifact_id}"
+            gh api --method DELETE "/repos/${GITHUB_REPOSITORY}/actions/artifacts/${artifact_id}"
+          done <<< "${artifact_ids}"
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -39,6 +58,7 @@ jobs:
         with:
           name: tasbeh-ui-screenshots
           if-no-files-found: error
+          retention-days: 7
           path: test/goldens/*.png
 
       - name: Build universal release APK
@@ -66,6 +86,7 @@ jobs:
         with:
           name: tasbeh-demo-apk
           if-no-files-found: error
+          retention-days: 7
           path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 
       - name: Upload universal fallback APK
@@ -73,6 +94,7 @@ jobs:
         with:
           name: tasbeh-universal-apk
           if-no-files-found: error
+          retention-days: 7
           path: build/app/outputs/flutter-apk/app-release.apk
 
       - name: Upload smaller ABI APKs
@@ -80,6 +102,7 @@ jobs:
         with:
           name: tasbeh-small-apks
           if-no-files-found: error
+          retention-days: 7
           path: |
             build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
             build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
@@ -90,5 +113,6 @@ jobs:
         with:
           name: tasbeh-android-aab
           if-no-files-found: error
+          retention-days: 7
           path: build/app/outputs/bundle/release/app-release.aab
 
