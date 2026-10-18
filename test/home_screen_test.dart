@@ -31,9 +31,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 350));
     expect(find.text('Allahu Akbar'), findsOneWidget);
 
-    await tester.tap(
-      find.byKey(const ValueKey<String>('tasbeeh-option-allahu-akbar')),
-    );
+    final allahuAkbarOption =
+        find.byKey(const ValueKey<String>('tasbeeh-option-allahu-akbar'));
+    await tester.ensureVisible(allahuAkbarOption);
+    await tester.tap(allahuAkbarOption);
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.text('ٱللَّهُ أَكْبَرُ'), findsOneWidget);
@@ -66,7 +67,9 @@ void main() {
     expect(find.byKey(const ValueKey<String>('target-1000')), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('target-∞')), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey<String>('target-33')));
+    final target33 = find.byKey(const ValueKey<String>('target-33'));
+    await tester.ensureVisible(target33);
+    await tester.tap(target33);
     await tester.pump();
     expect(controller.target, 33);
 
