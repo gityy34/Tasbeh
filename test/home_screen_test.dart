@@ -9,6 +9,9 @@ import 'package:tasbeh/theme/app_theme.dart';
 
 void main() {
   testWidgets('Tasbeeh picker updates Arabic text and closes', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final controller = TasbehController(MemoryStorageService());
     await controller.initialize();
 
@@ -46,6 +49,9 @@ void main() {
   });
 
   testWidgets('target controls use the reference target values', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     final controller = TasbehController(MemoryStorageService());
     await controller.initialize();
 
