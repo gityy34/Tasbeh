@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import '../content/tasbeeh_catalog.dart';
+
 enum AppThemeMode { auto, day, night }
 
 enum CounterPalette { water, realisticWater, nature, sunrise, midnight }
@@ -37,21 +39,25 @@ class TasbehSettings {
     this.themeMode = AppThemeMode.auto,
     this.palette = CounterPalette.water,
     this.textTone = TextTone.white,
+    this.tasbeehId = defaultTasbeehId,
   });
 
   final AppThemeMode themeMode;
   final CounterPalette palette;
   final TextTone textTone;
+  final String tasbeehId;
 
   TasbehSettings copyWith({
     AppThemeMode? themeMode,
     CounterPalette? palette,
     TextTone? textTone,
+    String? tasbeehId,
   }) {
     return TasbehSettings(
       themeMode: themeMode ?? this.themeMode,
       palette: palette ?? this.palette,
       textTone: textTone ?? this.textTone,
+      tasbeehId: tasbeehId ?? this.tasbeehId,
     );
   }
 
@@ -59,6 +65,7 @@ class TasbehSettings {
         'themeMode': themeMode.name,
         'palette': palette.name,
         'textTone': textTone.name,
+        'tasbeehId': tasbeehId,
       };
 
   factory TasbehSettings.fromJson(Map<String, dynamic> json) {
@@ -78,6 +85,7 @@ class TasbehSettings {
         json['textTone'] as String?,
         TextTone.white,
       ),
+      tasbeehId: json['tasbeehId'] as String? ?? defaultTasbeehId,
     );
   }
 }

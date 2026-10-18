@@ -86,12 +86,22 @@ void main() {
       await controller.setThemeMode(AppThemeMode.night);
       await controller.setPalette(CounterPalette.realisticWater);
       await controller.setTextTone(TextTone.cream);
+      await controller.setTasbeeh('allahu-akbar');
 
       final restored = TasbehController(storage);
       await restored.initialize();
       expect(restored.settings.themeMode, AppThemeMode.night);
       expect(restored.settings.palette, CounterPalette.realisticWater);
       expect(restored.settings.textTone, TextTone.cream);
+      expect(restored.selectedTasbeeh.label, 'Allahu Akbar');
+      expect(restored.selectedTasbeeh.arabicText, 'ٱللَّهُ أَكْبَرُ');
+    });
+
+    test('increment reports when the selected target is reached', () async {
+      await controller.setTarget(1);
+      expect(await controller.increment(), isTrue);
+      expect(await controller.increment(), isFalse);
+      expect(controller.isComplete, isTrue);
     });
 
     test('realistic water theme has a user-facing label', () {
@@ -148,13 +158,17 @@ void main() {
     const state = PersistedState(
       count: 27,
       target: 100,
-      settings: TasbehSettings(themeMode: AppThemeMode.night),
+      settings: TasbehSettings(
+        themeMode: AppThemeMode.night,
+        tasbeehId: 'subhanallah',
+      ),
       checkpoints: <TasbehCheckpoint>[],
     );
     final decoded = PersistedState.decode(state.encode());
     expect(decoded.count, 27);
     expect(decoded.target, 100);
     expect(decoded.settings.themeMode, AppThemeMode.night);
+    expect(decoded.settings.tasbeehId, 'subhanallah');
   });
 }
 

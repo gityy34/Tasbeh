@@ -1,12 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
+import '../content/tasbeeh_catalog.dart';
+import '../navigation.dart';
 import '../state/tasbeh_controller.dart';
 import '../theme/app_theme.dart';
-import '../widgets/splash_artwork.dart';
 import '../widgets/water_counter.dart';
-import '../navigation.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 
@@ -33,7 +34,7 @@ class HomeScreen extends StatelessWidget {
             onPressed: () => Navigator.of(context).push(
               AppRoute.fade(SettingsScreen(controller: controller)),
             ),
-            icon: const Icon(Icons.tune_rounded),
+            icon: const Icon(Icons.settings_outlined),
           ),
           const SizedBox(width: 6),
         ],
@@ -54,6 +55,11 @@ class _HomeContent extends StatelessWidget {
 
   final TasbehController controller;
 
+  Future<void> _increment() async {
+    final reachedTarget = await controller.increment();
+    if (reachedTarget) await HapticFeedback.mediumImpact();
+  }
+
   @override
   Widget build(BuildContext context) {
     final counterColors = counterColorsFor(
@@ -69,105 +75,42 @@ class _HomeContent extends StatelessWidget {
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 560),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Bismillah',
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.8,
-                                  ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              bismillah,
-                              textDirection: TextDirection.rtl,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontFamilyFallback: const ['Noto Naskh Arabic', 'Noto Sans Arabic', 'sans'],
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      _StatusPill(
-                        label: controller.isInfinite
-                            ? '∞'
-                            : '${controller.count}/${controller.target}',
-                        icon: controller.isComplete
-                            ? Icons.check_circle_outline_rounded
-                            : Icons.water_drop_outlined,
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: compact ? 10 : 18),
-                  SizedBox(
-                    width: mathMin(constraints.maxWidth, 430),
-                    child: WaterCounter(
-                      count: controller.count,
-                      target: controller.target,
-                      progress: controller.progress,
-                      colors: counterColors,
-                      palette: controller.settings.palette,
-                      isDark: isDark,
-                      onTap: () => unawaited(controller.increment()),
-                    ),
-                  ),
-                  SizedBox(height: compact ? 10 : 18),
-                  _TargetSection(controller: controller),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: controller.count == 0
-                              ? null
-                              : () => unawaited(controller.decrement()),
-                          icon: const Icon(Icons.remove_rounded),
-                          label: const Text('Minus 1'),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: () => _confirmReset(context, controller),
-                          icon: const Icon(Icons.refresh_rounded),
-                          label: const Text('Reset'),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: TextButton.icon(
-                      onPressed: () async {
-                        await controller.saveCheckpoint();
-                        if (context.mounted) showMessage(context, 'Checkpoint saved');
-                      },
-                      icon: const Icon(Icons.bookmark_add_outlined),
-                      label: Text(
-                        controller.checkpoints.isEmpty
-                            ? 'Save checkpoint'
-                            : 'Save checkpoint  •  ${controller.checkpoints.length} saved',
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: _increment,
+                child: Column(
+                  children: [
+                    _TasbeehSelector(controller: controller),
+                    SizedBox(height: compact ? 12 : 18),
+                    SizedBox(
+                      width: mathMin(constraints.maxWidth, 430),
+                      child: WaterCounter(
+                        count: controller.count,
+                        target: controller.target,
+                        progress: controller.progress,
+                        colors: counterColors,
+                        palette: controller.settings.palette,
+                        isDark: isDark,
+                        onTap: () => unawaited(_increment()),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    controller.progressLabel,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                  ),
-                ],
+                    SizedBox(height: compact ? 12 : 20),
+                    _TargetSection(controller: controller),
+                    SizedBox(height: compact ? 14 : 20),
+                    _HomeActions(
+                      controller: controller,
+                      onReset: () => _confirmReset(context),
+                      onSaveCheckpoint: () => _saveCheckpoint(context),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      controller.progressLabel,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                          ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -176,17 +119,28 @@ class _HomeContent extends StatelessWidget {
     );
   }
 
-  double mathMin(double a, double b) => a < b ? a : b;
+  Future<void> _saveCheckpoint(BuildContext context) async {
+    await controller.saveCheckpoint();
+    if (context.mounted) showMessage(context, 'Checkpoint saved');
+  }
 
-  Future<void> _confirmReset(BuildContext context, TasbehController controller) async {
+  Future<void> _confirmReset(BuildContext context) async {
     final shouldReset = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Reset counter?'),
-        content: const Text('Your current number will return to zero. Save a checkpoint first if you want to keep it.'),
+        content: const Text(
+          'Your current number will return to zero. Save a checkpoint first if you want to keep it.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Reset')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Reset'),
+          ),
         ],
       ),
     );
@@ -197,6 +151,159 @@ class _HomeContent extends StatelessWidget {
   }
 }
 
+class _TasbeehSelector extends StatelessWidget {
+  const _TasbeehSelector({required this.controller});
+
+  final TasbehController controller;
+
+  Future<void> _openPicker(BuildContext context) async {
+    final selectedId = await showModalBottomSheet<String>(
+      context: context,
+      useSafeArea: true,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => _TasbeehPickerSheet(
+        selectedId: controller.selectedTasbeeh.id,
+      ),
+    );
+    if (selectedId != null) {
+      unawaited(controller.setTasbeeh(selectedId));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = controller.selectedTasbeeh;
+    final primary = Theme.of(context).colorScheme.primary;
+    return Semantics(
+      button: true,
+      label: 'Tasbeh Name. Selected ${selected.label}. Open Tasbeeh list.',
+      onTap: () => _openPicker(context),
+      child: InkWell(
+        key: const ValueKey<String>('tasbeeh-selector'),
+        onTap: () => _openPicker(context),
+        borderRadius: BorderRadius.circular(18),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Tasbeh Name',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                  ),
+                  const SizedBox(width: 5),
+                  Icon(Icons.keyboard_arrow_down_rounded, color: primary),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                selected.arabicText,
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontFamilyFallback: const [
+                        'Noto Naskh Arabic',
+                        'Noto Sans Arabic',
+                        'sans',
+                      ],
+                      fontWeight: FontWeight.w600,
+                      height: 1.35,
+                    ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TasbeehPickerSheet extends StatelessWidget {
+  const _TasbeehPickerSheet({required this.selectedId});
+
+  final String selectedId;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.76;
+    return SafeArea(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Choose Tasbeh',
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Select the remembrance shown above the counter.',
+                style: theme.textTheme.bodySmall,
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: ListView.separated(
+                  itemCount: tasbeehPresets.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final preset = tasbeehPresets[index];
+                    final selected = preset.id == selectedId;
+                    return ListTile(
+                      key: ValueKey<String>('tasbeeh-option-${preset.id}'),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      selected: selected,
+                      selectedTileColor:
+                          theme.colorScheme.primaryContainer.withValues(alpha: 0.55),
+                      leading: Icon(
+                        selected
+                            ? Icons.radio_button_checked_rounded
+                            : Icons.radio_button_off_rounded,
+                        color: selected
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.outline,
+                      ),
+                      title: Text(
+                        preset.label,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text(
+                        preset.arabicText,
+                        textDirection: TextDirection.rtl,
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          fontFamilyFallback: [
+                            'Noto Naskh Arabic',
+                            'Noto Sans Arabic',
+                            'sans',
+                          ],
+                        ),
+                      ),
+                      onTap: () => Navigator.pop(context, preset.id),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _TargetSection extends StatelessWidget {
   const _TargetSection({required this.controller});
 
@@ -204,65 +311,164 @@ class _TargetSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const targets = <int?>[33, 50, 100, 1000, null];
+    const targets = <int?>[33, 100, 313, 1000, null];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Target',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: targets.map((target) {
-            final selected = controller.target == target;
-            final label = target == null ? '∞' : '$target';
-            return Semantics(
-              selected: selected,
-              button: true,
-              label: target == null ? 'Infinite target' : 'Target $target',
-              child: ChoiceChip(
-                label: Text(label),
-                selected: selected,
-                showCheckmark: false,
-                onSelected: (_) => unawaited(controller.setTarget(target)),
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
+        ),
+        const SizedBox(height: 10),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final diameter =
+                ((constraints.maxWidth - 32) / 5).clamp(54.0, 72.0).toDouble();
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: targets.map((target) {
+                final selected = controller.target == target;
+                final label = target == null ? '∞' : '$target';
+                final colorScheme = Theme.of(context).colorScheme;
+                return Semantics(
+                  selected: selected,
+                  button: true,
+                  label: target == null ? 'Infinite target' : 'Target $target',
+                  child: Material(
+                    color: selected
+                        ? colorScheme.primaryContainer
+                        : Colors.transparent,
+                    shape: CircleBorder(
+                      side: BorderSide(
+                        color: selected
+                            ? colorScheme.primaryContainer
+                            : colorScheme.outlineVariant,
+                      ),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      key: ValueKey<String>('target-$label'),
+                      customBorder: const CircleBorder(),
+                      onTap: () => unawaited(controller.setTarget(target)),
+                      child: SizedBox.square(
+                        dimension: diameter,
+                        child: Center(
+                          child: Text(
+                            label,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  color: selected
+                                      ? colorScheme.onPrimaryContainer
+                                      : colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
         ),
       ],
     );
   }
 }
 
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.label, required this.icon});
+class _HomeActions extends StatelessWidget {
+  const _HomeActions({
+    required this.controller,
+    required this.onReset,
+    required this.onSaveCheckpoint,
+  });
 
-  final String label;
-  final IconData icon;
+  final TasbehController controller;
+  final VoidCallback onReset;
+  final VoidCallback onSaveCheckpoint;
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 17),
-            const SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
-          ],
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _RoundActionButton(
+          key: const ValueKey<String>('minus-action'),
+          label: 'Decrease count by one',
+          icon: Icons.remove_rounded,
+          onPressed: controller.count == 0
+              ? null
+              : () => unawaited(controller.decrement()),
+        ),
+        const SizedBox(width: 22),
+        _RoundActionButton(
+          key: const ValueKey<String>('reset-action'),
+          label: 'Reset counter',
+          icon: Icons.refresh_rounded,
+          filled: true,
+          onPressed: onReset,
+        ),
+        const SizedBox(width: 22),
+        _RoundActionButton(
+          key: const ValueKey<String>('bookmark-action'),
+          label: 'Save checkpoint',
+          icon: Icons.bookmark_outline_rounded,
+          onPressed: onSaveCheckpoint,
+        ),
+      ],
+    );
+  }
+}
+
+class _RoundActionButton extends StatelessWidget {
+  const _RoundActionButton({
+    super.key,
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    this.filled = false,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback? onPressed;
+  final bool filled;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final enabled = onPressed != null;
+    final foreground = filled
+        ? scheme.onPrimary
+        : enabled
+            ? scheme.onSurface
+            : scheme.onSurface.withValues(alpha: 0.38);
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: label,
+      child: Material(
+        color: filled ? scheme.primary : Colors.transparent,
+        shape: CircleBorder(
+          side: filled
+              ? BorderSide.none
+              : BorderSide(color: scheme.outlineVariant),
+        ),
+        elevation: filled ? 2 : 0,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: SizedBox.square(
+            dimension: 64,
+            child: Icon(icon, color: foreground, size: 29),
+          ),
         ),
       ),
     );
   }
 }
 
+double mathMin(double a, double b) => a < b ? a : b;

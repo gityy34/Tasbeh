@@ -52,3 +52,23 @@ Official references:
 
 The design references were translated into a small responsive layout: a day/night arch splash, a water-like circular counter, five target presets, and bottom actions that remain reachable one-handed. The exact Bismillah string is rendered as Flutter text with RTL direction rather than trusting text baked into artwork, so Arabic shaping remains a real text-rendering responsibility.
 
+## Reference home layout decisions
+
+The latest reference was implemented as one shared home composition rather than a
+different layout per palette. This keeps the counter circle, Tasbeh selector, target
+row, and action row aligned across light, dark, nature, and water variants while the
+palette-specific painter continues to own the visual treatment inside the counter.
+
+The Tasbeh picker uses Flutter's built-in `showModalBottomSheet` with a scrollable,
+semantics-friendly list. It avoids a dependency for a small interaction, preserves
+one-handed use, and lets the selected Arabic phrase remain real RTL text instead of
+being baked into an image. The selected phrase is stored in the existing settings
+JSON, so older saved state falls back safely to Bismillah.
+
+Target controls are circular, keep a minimum 48 logical-pixel touch area, and use the
+reference order 33, 100, 313, 1000, and infinity. Reaching a finite target returns an
+explicit completion signal from the controller; the UI uses Flutter's built-in
+`HapticFeedback.mediumImpact` once at that boundary, without adding a package or
+re-triggering haptics on taps after completion. Blank space in the main content is a
+counting surface, while all visible controls retain their own actions.
+

@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
+import '../content/tasbeeh_catalog.dart';
 import '../models/app_models.dart';
 import '../services/storage_service.dart';
 
@@ -21,6 +22,7 @@ class TasbehController extends ChangeNotifier {
   int get count => _count;
   int? get target => _target;
   TasbehSettings get settings => _settings;
+  TasbeehPreset get selectedTasbeeh => tasbeehPresetForId(_settings.tasbeehId);
   List<TasbehCheckpoint> get checkpoints => List.unmodifiable(_checkpoints);
   bool get isInfinite => _target == null;
   bool get isComplete => _target != null && _count >= _target!;
@@ -49,11 +51,13 @@ class TasbehController extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> increment() async {
-    if (_target != null && _count >= _target!) return;
+  Future<bool> increment() async {
+    if (_target != null && _count >= _target!) return false;
     _count += 1;
+    final reachedTarget = _target != null && _count == _target;
     notifyListeners();
     await _persist();
+    return reachedTarget;
   }
 
   Future<void> decrement() async {
@@ -91,6 +95,14 @@ class TasbehController extends ChangeNotifier {
 
   Future<void> setTextTone(TextTone tone) async {
     _settings = _settings.copyWith(textTone: tone);
+    notifyListeners();
+    await _persist();
+  }
+
+  Future<void> setTasbeeh(String id) async {
+    final selected = tasbeehPresetForId(id);
+    if (selected.id == _settings.tasbeehId) return;
+    _settings = _settings.copyWith(tasbeehId: selected.id);
     notifyListeners();
     await _persist();
   }
