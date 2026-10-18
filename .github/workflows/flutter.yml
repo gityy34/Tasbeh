@@ -2,7 +2,7 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    branches: [main, realistic-water-theme]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
