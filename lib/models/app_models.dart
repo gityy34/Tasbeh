@@ -40,24 +40,28 @@ class TasbehSettings {
     this.palette = CounterPalette.water,
     this.textTone = TextTone.white,
     this.tasbeehId = defaultTasbeehId,
+    this.vibrateOnTarget = true,
   });
 
   final AppThemeMode themeMode;
   final CounterPalette palette;
   final TextTone textTone;
   final String tasbeehId;
+  final bool vibrateOnTarget;
 
   TasbehSettings copyWith({
     AppThemeMode? themeMode,
     CounterPalette? palette,
     TextTone? textTone,
     String? tasbeehId,
+    bool? vibrateOnTarget,
   }) {
     return TasbehSettings(
       themeMode: themeMode ?? this.themeMode,
       palette: palette ?? this.palette,
       textTone: textTone ?? this.textTone,
       tasbeehId: tasbeehId ?? this.tasbeehId,
+      vibrateOnTarget: vibrateOnTarget ?? this.vibrateOnTarget,
     );
   }
 
@@ -66,6 +70,7 @@ class TasbehSettings {
         'palette': palette.name,
         'textTone': textTone.name,
         'tasbeehId': tasbeehId,
+        'vibrateOnTarget': vibrateOnTarget,
       };
 
   factory TasbehSettings.fromJson(Map<String, dynamic> json) {
@@ -86,6 +91,7 @@ class TasbehSettings {
         TextTone.white,
       ),
       tasbeehId: json['tasbeehId'] as String? ?? defaultTasbeehId,
+      vibrateOnTarget: json['vibrateOnTarget'] as bool? ?? true,
     );
   }
 }
