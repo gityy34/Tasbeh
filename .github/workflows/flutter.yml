@@ -2,7 +2,9 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    branches: [main]
+    # The feature branch is included temporarily so the corrected demo APK is
+    # built and validated here. Restore this to [main] after the release.
+    branches: [main, realistic-water-theme]
   pull_request:
   workflow_dispatch:
 
@@ -56,15 +58,15 @@ jobs:
 
       - name: Build universal release APK
         if: github.event_name != 'pull_request'
-        run: flutter build apk --release
+        run: flutter build apk --release --build-number "${GITHUB_RUN_NUMBER}"
 
       - name: Build smaller ABI-specific APKs
         if: github.event_name != 'pull_request'
-        run: flutter build apk --release --split-per-abi
+        run: flutter build apk --release --split-per-abi --build-number "${GITHUB_RUN_NUMBER}"
 
       - name: Build release App Bundle
         if: github.event_name != 'pull_request'
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --build-number "${GITHUB_RUN_NUMBER}"
 
       - name: Verify APK signatures and package integrity
         if: github.event_name != 'pull_request'
@@ -75,8 +77,15 @@ jobs:
           for apk in build/app/outputs/flutter-apk/*.apk; do
             echo "Verifying ${apk}"
             unzip -t "${apk}" >/dev/null
+            "${build_tools_dir}/zipalign" -c -v 4 "${apk}" >/dev/null
             "${build_tools_dir}/apksigner" verify --verbose "${apk}"
           done
+
+          # Make the safe universal package the first, clearly named download.
+          cp build/app/outputs/flutter-apk/app-release.apk tasbeh-universal.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk tasbeh-arm64.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk tasbeh-armv7.apk
+          cp build/app/outputs/flutter-apk/app-x86_64-release.apk tasbeh-x86_64.apk
 
       - name: Publish direct demo release
         if: github.event_name != 'pull_request'
@@ -90,7 +99,9 @@ jobs:
             --repo "${GITHUB_REPOSITORY}" \
             --target "${GITHUB_SHA}" \
             --title "Tasbeh demo ${GITHUB_RUN_NUMBER}" \
-            --notes "Realistic Water Theme demo. The arm64 APK is the smaller Android 12+ download; the universal APK is the compatibility fallback." \
-            "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk#tasbeh-realistic-water-arm64.apk" \
-            "build/app/outputs/flutter-apk/app-release.apk#tasbeh-realistic-water-universal.apk"
+            --notes "Corrected Tasbeh demo. Install tasbeh-universal.apk if your device architecture is unknown; use an ABI-specific APK only when the device architecture is confirmed." \
+            tasbeh-universal.apk \
+            tasbeh-arm64.apk \
+            tasbeh-armv7.apk \
+            tasbeh-x86_64.apk
 
