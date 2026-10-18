@@ -616,5 +616,115 @@ class _WaterPainter extends CustomPainter {
         waterLine,
       );
     }
-    wavePath
-      ..lineTo(size.width, size.height)
+    wavePath.lineTo(size.width, size.height);
+    wavePath.lineTo(0, size.height);
+    wavePath.close();
+    canvas.drawPath(
+      wavePath,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            colors.accent.withValues(alpha: 0.94),
+            colors.bottom.withValues(alpha: 0.98),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ).createShader(
+          Rect.fromLTWH(0, waterLine, size.width, size.height - waterLine),
+        ),
+    );
+
+    final highlight = Paint()
+      ..color = colors.accentSoft.withValues(alpha: 0.24)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5;
+    final highlightPath = Path()..moveTo(0, waterLine - 2);
+    for (var i = -1; i < 3; i++) {
+      final startX = i * waveWidth;
+      highlightPath.cubicTo(
+        startX + waveWidth * .2,
+        waterLine - 8 + math.sin(phase * math.pi * 2 + i) * 5,
+        startX + waveWidth * .35,
+        waterLine + 5,
+        startX + waveWidth * .5,
+        waterLine - 2,
+      );
+      highlightPath.cubicTo(
+        startX + waveWidth * .68,
+        waterLine - 10,
+        startX + waveWidth * .82,
+        waterLine + 4,
+        startX + waveWidth,
+        waterLine - 2,
+      );
+    }
+    canvas.drawPath(highlightPath, highlight);
+
+    final bubblePaint = Paint()..color = colors.accentSoft.withValues(alpha: 0.32);
+    final bubbles = [
+      Offset(size.width * .2, size.height * .7),
+      Offset(size.width * .76, size.height * .73),
+      Offset(size.width * .14, size.height * .48),
+      Offset(size.width * .84, size.height * .44),
+      Offset(size.width * .68, size.height * .25),
+    ];
+    for (var i = 0; i < bubbles.length; i++) {
+      final drift = math.sin(phase * math.pi * 2 + i) * 5;
+      final bubble = bubbles[i].translate(drift, 0);
+      canvas.drawCircle(bubble, 3.5 + i % 3 * 1.8, bubblePaint);
+      canvas.drawCircle(
+        bubble.translate(-1, -1),
+        1.3,
+        Paint()..color = Colors.white.withValues(alpha: 0.72),
+      );
+    }
+    if (pulse > 0) {
+      final ripple = radius * (0.35 + pulse * 0.38);
+      canvas.drawCircle(
+        Offset(size.width * .5, waterLine),
+        ripple,
+        Paint()
+          ..color = colors.accentSoft.withValues(alpha: (1 - pulse) * 0.38)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2,
+      );
+    }
+    canvas.restore();
+
+    final ring = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..shader = SweepGradient(
+        colors: [colors.accentSoft, colors.accent, colors.bottom, colors.accentSoft],
+      ).createShader(circle);
+    canvas.drawCircle(center, radius, ring);
+    canvas.drawCircle(
+      center,
+      radius - 10,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = Colors.white.withValues(alpha: 0.36),
+    );
+    final shine = Paint()
+      ..color = Colors.white.withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+    canvas.drawArc(
+      Rect.fromCircle(center: center.translate(-2, -2), radius: radius - 8),
+      math.pi * 1.08,
+      math.pi * .7,
+      false,
+      shine,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _WaterPainter oldDelegate) {
+    return oldDelegate.phase != phase ||
+        oldDelegate.pulse != pulse ||
+        oldDelegate.progress != progress ||
+        oldDelegate.colors != colors;
+  }
+}
