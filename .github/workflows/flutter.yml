@@ -2,9 +2,7 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    # The feature branch is included temporarily so the corrected demo APK is
-    # built and validated here. Restore this to [main] after the release.
-    branches: [main, realistic-water-theme]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
