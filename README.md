@@ -46,7 +46,7 @@ The project does not request runtime permissions. Configure a real Android relea
 
 ## Versioning
 
-The current downloadable release is `v1.0.2`. Every new downloadable APK
+The current downloadable release is `v1.0.3`. Every new downloadable APK
 increments the version name (`v1.0.3`, `v1.0.4`, and so on). GitHub Actions uses
 the workflow run number as the Android build number and includes the version in
 each APK filename and release tag.
