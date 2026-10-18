@@ -2,7 +2,9 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    branches: [main]
+    # Temporary release trigger for the install-compatible v1.0.4 build.
+    # Restore this gate to [main] after the release is verified.
+    branches: [main, realistic-water-theme]
   pull_request:
   workflow_dispatch:
 
@@ -77,6 +79,9 @@ jobs:
             unzip -t "${apk}" >/dev/null
             "${build_tools_dir}/zipalign" -c -v 4 "${apk}" >/dev/null
             "${build_tools_dir}/apksigner" verify --verbose "${apk}"
+            package_line="$("${build_tools_dir}/aapt2" dump badging "${apk}" | head -n 1)"
+            echo "${package_line}"
+            grep -Fq "package: name='com.gityy34.tasbeh'" <<< "${package_line}"
           done
 
           version_name="$(sed -n 's/^version: \([^+[:space:]]*\).*/\1/p' pubspec.yaml)"
