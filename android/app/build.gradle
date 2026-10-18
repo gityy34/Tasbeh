@@ -18,6 +18,14 @@ android {
         jvmTarget = "17"
     }
 
+    // Keep Flutter native libraries compatible with Android 15/16 devices
+    // that use different native page-size requirements.
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     defaultConfig {
         applicationId = "com.gityy34.tasbeh"
         // Keep the APK installable on current Android phones and older devices;
