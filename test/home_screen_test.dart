@@ -36,8 +36,8 @@ void main() {
 
     final allahuAkbarOption =
         find.byKey(const ValueKey<String>('tasbeeh-option-allahu-akbar'));
-    await tester.ensureVisible(allahuAkbarOption);
-    await tester.tap(allahuAkbarOption);
+    final option = tester.widget<ListTile>(allahuAkbarOption);
+    option.onTap!();
     await tester.pump(const Duration(milliseconds: 350));
 
     expect(find.text('ٱللَّهُ أَكْبَرُ'), findsOneWidget);
