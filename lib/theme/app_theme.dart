@@ -35,6 +35,13 @@ CounterColors counterColorsFor(
         accentSoft: const Color(0xFFB9EEFF),
         foreground: foreground,
       ),
+    CounterPalette.realisticWater => CounterColors(
+        top: const Color(0xFF9CEBFF),
+        bottom: const Color(0xFF0878D1),
+        accent: const Color(0xFF28B8F2),
+        accentSoft: const Color(0xFFD9F8FF),
+        foreground: foreground,
+      ),
     CounterPalette.nature => CounterColors(
         top: const Color(0xFF8FD694),
         bottom: const Color(0xFF237A57),
@@ -59,13 +66,20 @@ CounterColors counterColorsFor(
   };
 }
 
+const autoDayStartHour = 6;
+const autoNightStartHour = 17;
+
+bool isAutoDaytime(DateTime now) {
+  final minuteOfDay = now.hour * 60 + now.minute;
+  return minuteOfDay >= autoDayStartHour * 60 &&
+      minuteOfDay < autoNightStartHour * 60;
+}
+
 Brightness effectiveBrightness(AppThemeMode mode, DateTime now) {
   return switch (mode) {
     AppThemeMode.day => Brightness.light,
     AppThemeMode.night => Brightness.dark,
-    AppThemeMode.auto => now.hour >= 6 && now.hour < 18
-        ? Brightness.light
-        : Brightness.dark,
+    AppThemeMode.auto => isAutoDaytime(now) ? Brightness.light : Brightness.dark,
   };
 }
 

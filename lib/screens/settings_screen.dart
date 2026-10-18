@@ -23,21 +23,32 @@ class SettingsScreen extends StatelessWidget {
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: SegmentedButton<AppThemeMode>(
-                  segments: AppThemeMode.values
-                      .map(
-                        (mode) => ButtonSegment<AppThemeMode>(
-                          value: mode,
-                          label: Text(mode.label),
-                          icon: Icon(_themeIcon(mode)),
-                        ),
-                      )
-                      .toList(),
-                  selected: {controller.settings.themeMode},
-                  onSelectionChanged: (selection) {
-                    final mode = selection.isEmpty ? null : selection.first;
-                    if (mode != null) unawaited(controller.setThemeMode(mode));
-                  },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SegmentedButton<AppThemeMode>(
+                      segments: AppThemeMode.values
+                          .map(
+                            (mode) => ButtonSegment<AppThemeMode>(
+                              value: mode,
+                              label: Text(mode.label),
+                              icon: Icon(_themeIcon(mode)),
+                            ),
+                          )
+                          .toList(),
+                      selected: {controller.settings.themeMode},
+                      onSelectionChanged: (selection) {
+                        final mode = selection.isEmpty ? null : selection.first;
+                        if (mode != null) unawaited(controller.setThemeMode(mode));
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Auto: Day 06:00–16:59 · Night 17:00–05:59',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -134,6 +145,7 @@ class _PaletteSwatch extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = switch (palette) {
       CounterPalette.water => const [Color(0xFF6DD5FA), Color(0xFF0878D1)],
+      CounterPalette.realisticWater => const [Color(0xFFD9F8FF), Color(0xFF0878D1)],
       CounterPalette.nature => const [Color(0xFF8FD694), Color(0xFF237A57)],
       CounterPalette.sunrise => const [Color(0xFFFFD89B), Color(0xFFCE7A35)],
       CounterPalette.midnight => const [Color(0xFF304E75), Color(0xFF071C3A)],

@@ -84,14 +84,18 @@ void main() {
 
     test('settings changes persist', () async {
       await controller.setThemeMode(AppThemeMode.night);
-      await controller.setPalette(CounterPalette.nature);
+      await controller.setPalette(CounterPalette.realisticWater);
       await controller.setTextTone(TextTone.cream);
 
       final restored = TasbehController(storage);
       await restored.initialize();
       expect(restored.settings.themeMode, AppThemeMode.night);
-      expect(restored.settings.palette, CounterPalette.nature);
+      expect(restored.settings.palette, CounterPalette.realisticWater);
       expect(restored.settings.textTone, TextTone.cream);
+    });
+
+    test('realistic water theme has a user-facing label', () {
+      expect(CounterPalette.realisticWater.label, 'Realistic Water Theme');
     });
 
     test('reset returns the count to zero and persists it', () async {
@@ -105,7 +109,23 @@ void main() {
     });
   });
 
-  test('auto brightness follows day and night hours', () {
+  test('auto brightness follows the 6 AM and 5 PM boundaries', () {
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 5, 59)),
+      Brightness.dark,
+    );
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 6, 0)),
+      Brightness.light,
+    );
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 16, 59)),
+      Brightness.light,
+    );
+    expect(
+      effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 17, 0)),
+      Brightness.dark,
+    );
     expect(
       effectiveBrightness(AppThemeMode.auto, DateTime(2026, 1, 1, 12)),
       Brightness.light,

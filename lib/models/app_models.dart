@@ -2,7 +2,7 @@ import 'dart:convert';
 
 enum AppThemeMode { auto, day, night }
 
-enum CounterPalette { water, nature, sunrise, midnight }
+enum CounterPalette { water, realisticWater, nature, sunrise, midnight }
 
 enum TextTone { white, navy, cream }
 
@@ -17,6 +17,7 @@ extension AppThemeModeLabel on AppThemeMode {
 extension CounterPaletteLabel on CounterPalette {
   String get label => switch (this) {
         CounterPalette.water => 'Water',
+        CounterPalette.realisticWater => 'Realistic Water Theme',
         CounterPalette.nature => 'Nature',
         CounterPalette.sunrise => 'Light',
         CounterPalette.midnight => 'Dark',
