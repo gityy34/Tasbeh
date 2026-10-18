@@ -1,8 +1,11 @@
+113 .github/workflows/flutter.yml
 name: Flutter checks and Android artifacts
 
 on:
   push:
-    branches: [main]
+    # Temporary release trigger for the requested v1.0.3 build. Restore this
+    # gate to [main] after the release is verified.
+    branches: [main, realistic-water-theme]
   pull_request:
   workflow_dispatch:
 
