@@ -46,13 +46,13 @@ The project does not request runtime permissions. Configure a real Android relea
 
 ## Versioning
 
-The current downloadable release is `v1.0.3`. Every new downloadable APK
-increments the version name (`v1.0.3`, `v1.0.4`, and so on). GitHub Actions uses
+The current downloadable release is `v1.0.4`. Every new downloadable APK
+increments the version name (`v1.0.4`, `v1.0.5`, and so on). GitHub Actions uses
 the workflow run number as the Android build number and includes the version in
 each APK filename and release tag.
 
-This release includes the compact target panel, enlarged counter surface, and
-the optional target-completion haptic setting.
+The `v1.0.4` demo uses the unique `com.gityy34.tasbeh` application ID so it
+does not conflict with older `com.example.tasbeh` demo installations.
 
 ## GitHub Actions
 
