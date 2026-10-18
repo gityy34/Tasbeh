@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:tasbeh/models/app_models.dart';
 import 'package:tasbeh/screens/home_screen.dart';
+import 'package:tasbeh/screens/settings_screen.dart';
 import 'package:tasbeh/services/storage_service.dart';
 import 'package:tasbeh/state/tasbeh_controller.dart';
 import 'package:tasbeh/theme/app_theme.dart';
@@ -29,6 +30,9 @@ void main() {
 
     expect(find.text('Tasbeh Name'), findsOneWidget);
     expect(find.text('بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ'), findsOneWidget);
+    expect(find.text('of 100'), findsNothing);
+    expect(find.text('1% complete'), findsNothing);
+    expect(find.byKey(const ValueKey<String>('target-controls-panel')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey<String>('tasbeeh-selector')));
     await tester.pump(const Duration(milliseconds: 350));
@@ -42,6 +46,37 @@ void main() {
 
     expect(find.text('ٱللَّهُ أَكْبَرُ'), findsOneWidget);
     expect(controller.selectedTasbeeh.id, 'allahu-akbar');
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    controller.dispose();
+  });
+
+  testWidgets('target completion vibration can be switched off', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = TasbehController(MemoryStorageService());
+    await controller.initialize();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTasbehTheme(
+          brightness: Brightness.light,
+          palette: CounterPalette.water,
+          textTone: TextTone.white,
+        ),
+        home: SettingsScreen(controller: controller),
+      ),
+    );
+    await tester.pump();
+
+    final vibrationSwitch =
+        find.byKey(const ValueKey<String>('target-vibration-switch'));
+    expect(controller.settings.vibrateOnTarget, isTrue);
+    await tester.tap(vibrationSwitch);
+    await tester.pump();
+    expect(controller.settings.vibrateOnTarget, isFalse);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump();
