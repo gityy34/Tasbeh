@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -53,14 +53,6 @@ jobs:
       - name: Capture real UI screenshots
         run: flutter test --update-goldens --timeout 2m test/ui_screenshot_test.dart
 
-      - name: Upload UI screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: tasbeh-ui-screenshots
-          if-no-files-found: error
-          retention-days: 7
-          path: test/goldens/*.png
-
       - name: Build universal release APK
         run: flutter build apk --release
 
@@ -81,38 +73,18 @@ jobs:
             "${build_tools_dir}/apksigner" verify --verbose "${apk}"
           done
 
-      - name: Upload small Android 12+ demo APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: tasbeh-demo-apk
-          if-no-files-found: error
-          retention-days: 7
-          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-
-      - name: Upload universal fallback APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: tasbeh-universal-apk
-          if-no-files-found: error
-          retention-days: 7
-          path: build/app/outputs/flutter-apk/app-release.apk
-
-      - name: Upload smaller ABI APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: tasbeh-small-apks
-          if-no-files-found: error
-          retention-days: 7
-          path: |
-            build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
-            build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
-            build/app/outputs/flutter-apk/app-x86_64-release.apk
-
-      - name: Upload App Bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: tasbeh-android-aab
-          if-no-files-found: error
-          retention-days: 7
-          path: build/app/outputs/bundle/release/app-release.aab
+      - name: Publish direct demo release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag="tasbeh-demo-${GITHUB_RUN_NUMBER}"
+          gh release create "${tag}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --target "${GITHUB_SHA}" \
+            --title "Tasbeh demo ${GITHUB_RUN_NUMBER}" \
+            --notes "Realistic Water Theme demo. The arm64 APK is the smaller Android 12+ download; the universal APK is the compatibility fallback." \
+            "build/app/outputs/flutter-apk/app-arm64-v8a-release.apk#tasbeh-realistic-water-arm64.apk" \
+            "build/app/outputs/flutter-apk/app-release.apk#tasbeh-realistic-water-universal.apk"
 
