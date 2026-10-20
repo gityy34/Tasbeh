@@ -28,7 +28,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tasbeh'),
+        title: const _TasbehCategoryMenu(),
         actions: [
           IconButton(
             tooltip: 'Saved checkpoints',
@@ -62,6 +62,108 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _TasbehCategoryMenu extends StatelessWidget {
+  const _TasbehCategoryMenu();
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).appBarTheme.foregroundColor ??
+        Theme.of(context).colorScheme.onSurface;
+
+    return PopupMenuButton<String>(
+      key: const ValueKey<String>('tasbeh-category-menu'),
+      tooltip: 'Open Tasbeh categories',
+      position: PopupMenuPosition.under,
+      offset: const Offset(0, 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+      ),
+      elevation: 8,
+      onSelected: (_) {},
+      itemBuilder: (context) => [
+        PopupMenuItem<String>(
+          value: 'morning-evening-azkar',
+          height: 56,
+          child: _AzkarMenuLabel(
+            label: 'صبح و شام کے اذکار',
+            icon: Icons.wb_twilight_rounded,
+            color: color,
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'daily-azkar',
+          height: 56,
+          child: _AzkarMenuLabel(
+            label: 'روزانہ کے اذکار',
+            icon: Icons.calendar_today_rounded,
+            color: color,
+          ),
+        ),
+      ],
+      child: Semantics(
+        button: true,
+        label: 'Tasbeh categories',
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Tasbeh',
+                style: Theme.of(context).appBarTheme.titleTextStyle ??
+                    Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: color,
+                          fontWeight: FontWeight.w700,
+                        ),
+              ),
+              const SizedBox(width: 3),
+              Icon(Icons.keyboard_arrow_down_rounded, color: color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AzkarMenuLabel extends StatelessWidget {
+  const _AzkarMenuLabel({
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
+
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 22),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            label,
+            textDirection: TextDirection.rtl,
+            textAlign: TextAlign.right,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                  fontFamilyFallback: const [
+                    'Noto Naskh Arabic',
+                    'Noto Sans Arabic',
+                    'sans',
+                  ],
+                ),
+          ),
+        ),
+      ],
     );
   }
 }
