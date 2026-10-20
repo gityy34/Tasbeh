@@ -53,12 +53,12 @@ release keystore before publishing; no signing credentials are included here.
 
 ## Versioning
 
-The current downloadable release is `v1.0.5`. Every new downloadable APK
+The current release line is `v1.0.6`. Every new downloadable APK
 increments the version name (`v1.0.5`, `v1.0.6`, and so on). GitHub Actions uses
 the workflow run number as the Android build number and includes the version in
 each APK filename and release tag.
 
-The `v1.0.5` demo uses the unique `com.gityy34.tasbeh` application ID and
+The `v1.0.6` demo uses the unique `com.gityy34.tasbeh` application ID and
 legacy native-library packaging for Android 15/16 installation compatibility.
 
 ## GitHub Actions
