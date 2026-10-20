@@ -3,7 +3,7 @@ description: A calm, accessible Tasbeh counter for Android.
 publish_to: "none"
 # Version name increments for every downloadable APK release. CI supplies a
 # monotonically increasing Android build number from the GitHub run number.
-version: 1.0.5+1
+version: 1.0.6+1
 
 environment:
   sdk: ">=3.10.0 <4.0.0"
@@ -25,4 +25,3 @@ flutter:
   assets:
     - assets/images/splash_day.jpg
     - assets/images/splash_night.jpg
-
