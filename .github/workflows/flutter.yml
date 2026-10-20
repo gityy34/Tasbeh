@@ -2,7 +2,7 @@ name: Flutter checks and Android artifacts
 
 on:
   push:
-    branches: [main]
+    branches: [main, realistic-water-theme]
   pull_request:
   workflow_dispatch:
 
@@ -49,7 +49,7 @@ jobs:
         run: flutter analyze
 
       - name: Run tests
-        run: flutter test test/tasbeh_controller_test.dart test/water_counter_test.dart test/home_screen_test.dart test/reminder_controller_test.dart test/notification_schedule_test.dart
+        run: flutter test test/tasbeh_controller_test.dart test/water_counter_test.dart test/home_screen_test.dart test/reminder_controller_test.dart test/notification_schedule_test.dart test/reminder_controller_test.dart test/notification_schedule_test.dart
 
       - name: Capture real UI screenshots
         run: flutter test --update-goldens --timeout 2m test/ui_screenshot_test.dart
@@ -82,6 +82,11 @@ jobs:
             grep -Fq "package: name='com.gityy34.tasbeh'" <<< "${package_line}"
           done
 
+          aab="build/app/outputs/bundle/release/app-release.aab"
+          echo "Verifying ${aab}"
+          unzip -t "${aab}" >/dev/null
+          jarsigner -verify "${aab}" >/dev/null
+
           version_name="$(sed -n 's/^version: \([^+[:space:]]*\).*/\1/p' pubspec.yaml)"
           asset_prefix="tasbeh-v${version_name}"
           echo "Preparing ${asset_prefix} APKs with build number ${GITHUB_RUN_NUMBER}"
@@ -91,6 +96,7 @@ jobs:
           cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk "${asset_prefix}-arm64.apk"
           cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk "${asset_prefix}-armv7.apk"
           cp build/app/outputs/flutter-apk/app-x86_64-release.apk "${asset_prefix}-x86_64.apk"
+          cp build/app/outputs/bundle/release/app-release.aab "${asset_prefix}.aab"
 
       - name: Publish direct demo release
         if: github.event_name != 'pull_request'
@@ -110,5 +116,6 @@ jobs:
             "${asset_prefix}-universal.apk" \
             "${asset_prefix}-arm64.apk" \
             "${asset_prefix}-armv7.apk" \
-            "${asset_prefix}-x86_64.apk"
+            "${asset_prefix}-x86_64.apk" \
+            "${asset_prefix}.aab"
 
