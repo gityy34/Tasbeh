@@ -11,6 +11,40 @@ import 'package:tasbeh/theme/app_theme.dart';
 import 'package:tasbeh/widgets/water_counter.dart';
 
 void main() {
+  testWidgets('Tasbeh title opens the two Azkar categories', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = TasbehController(MemoryStorageService());
+    await controller.initialize();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTasbehTheme(
+          brightness: Brightness.light,
+          palette: CounterPalette.water,
+          textTone: TextTone.white,
+        ),
+        home: HomeScreen(controller: controller),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey<String>('tasbeh-category-menu')));
+    await tester.pump();
+
+    expect(find.text('صبح و شام کے اذکار'), findsOneWidget);
+    expect(find.text('روزانہ کے اذکار'), findsOneWidget);
+
+    await tester.tapAt(const Offset(350, 760));
+    await tester.pump();
+    expect(find.text('صبح و شام کے اذکار'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    controller.dispose();
+  });
+
   testWidgets('Tasbeeh picker updates Arabic text and closes', (tester) async {
     await tester.binding.setSurfaceSize(const Size(360, 800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
