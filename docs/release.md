@@ -15,7 +15,7 @@ It runs on pushes to `main`, pull requests, and manual dispatches. The workflow:
 To run it manually, open the repository's **Actions** tab, select **Flutter checks and Android artifacts**, click **Run workflow**, choose `main`, and start the run. Download `tasbeh-universal.apk` for the safest direct install when the device architecture is unknown. Use an ABI-specific APK only when the device architecture is confirmed. The AAB is for Play distribution and cannot be installed directly.
 
 Each downloadable APK release increments the version in `pubspec.yaml`. The
-current release line is `v1.0.5`; CI includes that version in the release tag and
+current release line is `v1.0.6`; CI includes that version in the release tag and
 APK filenames, while the GitHub Actions run number supplies the Android build
 number.
 
