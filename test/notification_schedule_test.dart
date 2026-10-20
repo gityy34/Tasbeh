@@ -7,7 +7,7 @@ void main() {
   setUpAll(tz_data.initializeTimeZones);
 
   test('midnight schedules today when it is still in the future', () {
-    final location = tz.getLocation('UTC');
+    final location = tz.UTC;
     final now = tz.TZDateTime(location, 2026, 1, 1, 0, 0).subtract(
       const Duration(minutes: 1),
     );
