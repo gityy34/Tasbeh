@@ -2,13 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../controllers/reminder_controller.dart';
 import '../models/app_models.dart';
+import '../navigation.dart';
 import '../state/tasbeh_controller.dart';
+import 'reminders_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key, required this.controller});
+  const SettingsScreen({
+    super.key,
+    required this.controller,
+    this.reminderController,
+  });
 
   final TasbehController controller;
+  final ReminderController? reminderController;
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +27,26 @@ class SettingsScreen extends StatelessWidget {
         builder: (context, child) => ListView(
           padding: const EdgeInsets.fromLTRB(18, 8, 18, 30),
           children: [
-            _SectionTitle(title: 'Day / night'),
+            const _SectionTitle(title: 'Reminders'),
+            Card(
+              child: ListTile(
+                key: const ValueKey<String>('reminders-settings-tile'),
+                minVerticalPadding: 14,
+                leading: const Icon(Icons.notifications_active_outlined),
+                title: const Text('Daily Tasbeh reminders'),
+                subtitle: Text(_reminderStatus()),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: reminderController == null
+                    ? null
+                    : () => Navigator.of(context).push(
+                          AppRoute.fade(
+                            RemindersScreen(controller: reminderController!),
+                          ),
+                        ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const _SectionTitle(title: 'Day / night'),
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -129,6 +156,14 @@ class SettingsScreen extends StatelessWidget {
         AppThemeMode.day => Icons.wb_sunny_outlined,
         AppThemeMode.night => Icons.nightlight_outlined,
       };
+
+  String _reminderStatus() {
+    final reminders = reminderController;
+    if (reminders == null) return 'Available on Android';
+    if (!reminders.masterEnabled) return 'All reminders are off';
+    final enabled = reminders.reminders.where((item) => item.enabled).length;
+    return '$enabled enabled';
+  }
 }
 
 class _SectionTitle extends StatelessWidget {

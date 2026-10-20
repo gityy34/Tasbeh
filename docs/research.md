@@ -81,3 +81,48 @@ enabled by default and persisted through settings, with a user-facing switch in
 Settings to turn them off. Flutter's built-in haptic API is sufficient, so no
 runtime permission or extra package is needed.
 
+## Offline reminder research and decision
+
+The reminder implementation uses `flutter_local_notifications` 22.3.2, the
+latest non-prerelease release verified on 2026-10-19, and `timezone` 0.11.0.
+The plugin is actively maintained, supports Android notification permission
+checks, exact-alarm access, app-notification settings, reboot restoration,
+timezone-aware `zonedSchedule`, and daily matching. Version 23 was rejected
+because the available release was still a development prerelease. Firebase,
+cloud messaging, background web services, and a continuously running timer are
+not needed.
+
+Daily reminders use `zonedSchedule` with `DateTimeComponents.time`. The device's
+IANA timezone ID comes from a tiny Android platform channel, avoiding another
+timezone-discovery dependency. Exact scheduling uses
+`AndroidScheduleMode.exactAllowWhileIdle` only when Android grants exact-alarm
+access; otherwise the service uses `inexactAllowWhileIdle` and the UI explains
+that Android may delay delivery. `SCHEDULE_EXACT_ALARM` is used rather than the
+more policy-restricted `USE_EXACT_ALARM` permission.
+
+The plugin's documented scheduled-notification and boot receivers restore
+enabled schedules after reboot and app replacement. A minimal time-change
+receiver asks the same plugin scheduler to recalculate cached timezone-aware
+alarms after the system clock or timezone changes. Opening or resuming the app
+also performs an idempotent resynchronization. Stable persisted notification IDs
+and cancel-before-schedule updates prevent duplicates.
+
+Android 13 notification permission is requested only after an in-app explanation
+when the user enables or adds reminders. The Settings UI exposes permission
+state and links to Android settings. Android force-stop and aggressive OEM
+battery restrictions remain operating-system limitations and are described
+honestly in the screen.
+
+Reminder data is stored under a separate schema-versioned key, so existing
+counter, checkpoint, theme, and Arabic content storage remains untouched. The
+notification plugin is hidden behind a service interface and the controller is
+tested with a fake scheduler.
+
+Official/current references reviewed:
+
+- https://developer.android.com/develop/ui/views/notifications/notification-permission
+- https://developer.android.com/about/versions/14/changes/schedule-exact-alarms
+- https://developer.android.com/reference/android/Manifest.permission#SCHEDULE_EXACT_ALARM
+- https://github.com/MaikuB/flutter_local_notifications/releases/tag/flutter_local_notifications-v22.3.2
+- https://github.com/MaikuB/flutter_local_notifications/tree/flutter_local_notifications-v22.3.2/flutter_local_notifications
+

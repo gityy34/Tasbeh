@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../content/tasbeeh_catalog.dart';
+import '../controllers/reminder_controller.dart';
 import '../navigation.dart';
+import '../services/haptic_service.dart';
 import '../state/tasbeh_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/water_counter.dart';
@@ -12,9 +13,16 @@ import 'history_screen.dart';
 import 'settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, required this.controller});
+  const HomeScreen({
+    super.key,
+    required this.controller,
+    this.reminderController,
+    this.hapticService = const PlatformTargetHapticService(),
+  });
 
   final TasbehController controller;
+  final ReminderController? reminderController;
+  final TargetHapticService hapticService;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +40,12 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             tooltip: 'Settings',
             onPressed: () => Navigator.of(context).push(
-              AppRoute.fade(SettingsScreen(controller: controller)),
+              AppRoute.fade(
+                SettingsScreen(
+                  controller: controller,
+                  reminderController: reminderController,
+                ),
+              ),
             ),
             icon: const Icon(Icons.settings_outlined),
           ),
@@ -43,7 +56,10 @@ class HomeScreen extends StatelessWidget {
         top: false,
         child: AnimatedBuilder(
           animation: controller,
-          builder: (context, child) => _HomeContent(controller: controller),
+          builder: (context, child) => _HomeContent(
+            controller: controller,
+            hapticService: hapticService,
+          ),
         ),
       ),
     );
@@ -51,14 +67,18 @@ class HomeScreen extends StatelessWidget {
 }
 
 class _HomeContent extends StatelessWidget {
-  const _HomeContent({required this.controller});
+  const _HomeContent({
+    required this.controller,
+    required this.hapticService,
+  });
 
   final TasbehController controller;
+  final TargetHapticService hapticService;
 
   Future<void> _increment() async {
     final reachedTarget = await controller.increment();
     if (reachedTarget && controller.settings.vibrateOnTarget) {
-      await HapticFeedback.mediumImpact();
+      await hapticService.targetCompleted();
     }
   }
 

@@ -1,11 +1,14 @@
 # Tasbeh
 
-An offline-first Flutter Tasbeh counter designed around a calm water surface, large touch targets, and persistent checkpoints.
+An offline-first Flutter Tasbeh counter designed around a calm water surface,
+large touch targets, persistent checkpoints, and device-local daily reminders.
 
 ## Structure
 
-- `lib/models`: serializable settings and checkpoint models.
-- `lib/services`: persistence boundary.
+- `lib/models`: serializable settings, checkpoint, and reminder models.
+- `lib/services`: persistence, notification, permission, and haptic boundaries.
+- `lib/repositories`: schema-versioned reminder persistence.
+- `lib/controllers`: reminder scheduling and state coordination.
 - `lib/state`: counter state and application controller.
 - `lib/theme`: theme and palette definitions.
 - `lib/widgets`: reusable counter, splash artwork, and controls.
@@ -42,7 +45,11 @@ APK. ABI-specific APKs are available only when the device architecture is
 confirmed. Demo APKs are signed with the runner's debug key; use a private
 release keystore before publishing to Google Play.
 
-The project does not request runtime permissions. Configure a real Android release keystore before publishing; no signing credentials are included here.
+The app requests Android notification access only after the user enables or adds
+a reminder. Exact alarm access is optional; when it is unavailable, reminders
+use Android's inexact fallback and may be delayed. Reminder scheduling is local
+and needs no account, Firebase, or internet connection. Configure a real Android
+release keystore before publishing; no signing credentials are included here.
 
 ## Versioning
 

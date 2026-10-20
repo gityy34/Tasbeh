@@ -4,9 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tasbeh/models/app_models.dart';
 import 'package:tasbeh/screens/home_screen.dart';
 import 'package:tasbeh/screens/settings_screen.dart';
+import 'package:tasbeh/services/haptic_service.dart';
 import 'package:tasbeh/services/storage_service.dart';
 import 'package:tasbeh/state/tasbeh_controller.dart';
 import 'package:tasbeh/theme/app_theme.dart';
+import 'package:tasbeh/widgets/water_counter.dart';
 
 void main() {
   testWidgets('Tasbeeh picker updates Arabic text and closes', (tester) async {
@@ -118,4 +120,61 @@ void main() {
     await tester.pump();
     controller.dispose();
   });
+
+  testWidgets('target completion haptic fires once and resets by cycle',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(360, 800));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final controller = TasbehController(MemoryStorageService());
+    final haptics = FakeTargetHapticService();
+    await controller.initialize();
+    await controller.setTarget(1);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildTasbehTheme(
+          brightness: Brightness.light,
+          palette: CounterPalette.water,
+          textTone: TextTone.white,
+        ),
+        home: HomeScreen(
+          controller: controller,
+          hapticService: haptics,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byType(WaterCounter));
+    await tester.pump();
+    expect(haptics.calls, 1);
+
+    await tester.tap(find.byType(WaterCounter));
+    await tester.pump();
+    expect(haptics.calls, 1);
+
+    await controller.reset();
+    await tester.tap(find.byType(WaterCounter));
+    await tester.pump();
+    expect(haptics.calls, 2);
+
+    await controller.reset();
+    await controller.setVibrateOnTarget(false);
+    await tester.tap(find.byType(WaterCounter));
+    await tester.pump();
+    expect(haptics.calls, 2);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    controller.dispose();
+  });
+}
+
+class FakeTargetHapticService implements TargetHapticService {
+  int calls = 0;
+
+  @override
+  Future<void> targetCompleted() async {
+    calls += 1;
+  }
 }

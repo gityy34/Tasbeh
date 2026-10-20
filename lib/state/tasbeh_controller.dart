@@ -17,6 +17,7 @@ class TasbehController extends ChangeNotifier {
   int? _target = 100;
   TasbehSettings _settings = const TasbehSettings();
   List<TasbehCheckpoint> _checkpoints = const [];
+  bool _completionSignalled = false;
 
   bool get isReady => _ready;
   int get count => _count;
@@ -47,6 +48,7 @@ class TasbehController extends ChangeNotifier {
     if (_target != null && _target! <= 0) _target = 100;
     _settings = state.settings;
     _checkpoints = List.unmodifiable(state.checkpoints.take(50));
+    _completionSignalled = isComplete;
     _ready = true;
     notifyListeners();
   }
@@ -54,7 +56,9 @@ class TasbehController extends ChangeNotifier {
   Future<bool> increment() async {
     if (_target != null && _count >= _target!) return false;
     _count += 1;
-    final reachedTarget = _target != null && _count == _target;
+    final reachedTarget =
+        _target != null && _count == _target && !_completionSignalled;
+    if (reachedTarget) _completionSignalled = true;
     notifyListeners();
     await _persist();
     return reachedTarget;
@@ -69,14 +73,17 @@ class TasbehController extends ChangeNotifier {
 
   Future<void> reset() async {
     _count = 0;
+    _completionSignalled = false;
     notifyListeners();
     await _persist();
   }
 
   Future<void> setTarget(int? target) async {
     if (target != null && target <= 0) return;
+    if (_target == target) return;
     _target = target;
     if (target != null && _count > target) _count = target;
+    _completionSignalled = false;
     notifyListeners();
     await _persist();
   }

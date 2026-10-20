@@ -2,8 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'controllers/reminder_controller.dart';
 import 'models/app_models.dart';
+import 'models/tasbeh_reminder.dart';
+import 'repositories/reminder_repository.dart';
+import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
+import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 import 'state/tasbeh_controller.dart';
 import 'theme/app_theme.dart';
@@ -12,13 +17,28 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final controller = TasbehController(PreferencesStorageService());
   await controller.initialize();
-  runApp(TasbehApp(controller: controller));
+  final reminderController = ReminderController(
+    repository: PreferencesReminderRepository(),
+    notifications: FlutterLocalNotificationService(),
+  );
+  await reminderController.initialize();
+  runApp(
+    TasbehApp(
+      controller: controller,
+      reminderController: reminderController,
+    ),
+  );
 }
 
 class TasbehApp extends StatefulWidget {
-  const TasbehApp({super.key, required this.controller});
+  const TasbehApp({
+    super.key,
+    required this.controller,
+    required this.reminderController,
+  });
 
   final TasbehController controller;
+  final ReminderController reminderController;
 
   @override
   State<TasbehApp> createState() => _TasbehAppState();
@@ -27,6 +47,7 @@ class TasbehApp extends StatefulWidget {
 class _TasbehAppState extends State<TasbehApp>
     with WidgetsBindingObserver {
   Timer? _themeBoundaryTimer;
+  final _navigatorKey = GlobalKey<NavigatorState>();
 
   TasbehController get _controller => widget.controller;
 
@@ -35,7 +56,9 @@ class _TasbehAppState extends State<TasbehApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _controller.addListener(_handleControllerChanged);
+    widget.reminderController.onOpenReminder = _openReminder;
     _scheduleNextThemeBoundary();
+    unawaited(widget.reminderController.consumePendingNavigation());
   }
 
   @override
@@ -93,14 +116,33 @@ class _TasbehAppState extends State<TasbehApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed && mounted) {
       _scheduleNextThemeBoundary();
+      unawaited(widget.reminderController.resyncSchedules());
       setState(() {});
     }
+  }
+
+  Future<void> _openReminder(TasbehReminder? reminder) async {
+    if (reminder?.sourceType == ReminderSourceType.builtInTasbeeh) {
+      await _controller.setTasbeeh(reminder!.sourceId);
+    }
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => HomeScreen(
+          controller: _controller,
+          reminderController: widget.reminderController,
+        ),
+      ),
+      (_) => false,
+    );
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.removeListener(_handleControllerChanged);
+    widget.reminderController.onOpenReminder = null;
     _themeBoundaryTimer?.cancel();
     super.dispose();
   }
@@ -122,12 +164,16 @@ class _TasbehAppState extends State<TasbehApp>
       textTone: _controller.settings.textTone,
     );
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Tasbeh Counter',
       theme: light,
       darkTheme: dark,
       themeMode: brightness == Brightness.dark ? ThemeMode.dark : ThemeMode.light,
-      home: SplashScreen(controller: _controller),
+      home: SplashScreen(
+        controller: _controller,
+        reminderController: widget.reminderController,
+      ),
     );
   }
 }

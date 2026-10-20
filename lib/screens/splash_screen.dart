@@ -2,15 +2,21 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../controllers/reminder_controller.dart';
 import '../navigation.dart';
 import '../state/tasbeh_controller.dart';
 import '../widgets/splash_artwork.dart';
 import 'home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, required this.controller});
+  const SplashScreen({
+    super.key,
+    required this.controller,
+    this.reminderController,
+  });
 
   final TasbehController controller;
+  final ReminderController? reminderController;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -27,7 +33,14 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _openHome() {
     if (!mounted) return;
-    Navigator.of(context).pushReplacement(AppRoute.fade(HomeScreen(controller: widget.controller)));
+    Navigator.of(context).pushReplacement(
+      AppRoute.fade(
+        HomeScreen(
+          controller: widget.controller,
+          reminderController: widget.reminderController,
+        ),
+      ),
+    );
   }
 
   @override

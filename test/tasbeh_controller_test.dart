@@ -107,6 +107,40 @@ void main() {
       expect(controller.isComplete, isTrue);
     });
 
+    for (final target in <int>[33, 100, 313, 1000]) {
+      test('target $target emits one completion signal per cycle', () async {
+        await controller.setTarget(target);
+        for (var count = 1; count < target; count++) {
+          expect(await controller.increment(), isFalse);
+        }
+        expect(await controller.increment(), isTrue);
+        expect(await controller.increment(), isFalse);
+        await controller.decrement();
+        expect(await controller.increment(), isFalse);
+
+        await controller.reset();
+        for (var count = 1; count < target; count++) {
+          await controller.increment();
+        }
+        expect(await controller.increment(), isTrue);
+      });
+    }
+
+    test('infinity mode never emits a target completion signal', () async {
+      await controller.setTarget(null);
+      for (var count = 0; count < 1200; count++) {
+        expect(await controller.increment(), isFalse);
+      }
+    });
+
+    test('switching target starts a separate completion cycle', () async {
+      await controller.setTarget(1);
+      expect(await controller.increment(), isTrue);
+      await controller.setTarget(2);
+      expect(await controller.increment(), isTrue);
+      expect(await controller.increment(), isFalse);
+    });
+
     test('realistic water theme has a user-facing label', () {
       expect(CounterPalette.realisticWater.label, 'Realistic Water Theme');
     });

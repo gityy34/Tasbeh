@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 class AppRoute {
   const AppRoute._();
 
-  static Route<void> fade(Widget page) {
-    return PageRouteBuilder<void>(
+  static Route<T> fade<T>(Widget page) {
+    return PageRouteBuilder<T>(
       pageBuilder: (_, animation, __) => page,
       transitionsBuilder: (_, animation, __, child) {
         return FadeTransition(opacity: animation, child: child);
