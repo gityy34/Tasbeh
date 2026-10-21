@@ -24,9 +24,17 @@ class MorningEveningAzkarScreen extends StatefulWidget {
 class _MorningEveningAzkarScreenState
     extends State<MorningEveningAzkarScreen> {
   Future<void> _upload() async {
-    final uploaded = await widget.controller.uploadPdf(
-      AzkarCategory.morningEvening,
-    );
+    bool uploaded;
+    try {
+      uploaded = await widget.controller.uploadPdf(
+        AzkarCategory.morningEvening,
+      );
+    } catch (_) {
+      if (mounted) {
+        showMessage(context, 'The PDF could not be opened. Choose a valid PDF.');
+      }
+      return;
+    }
     if (!mounted) return;
     if (uploaded) showMessage(context, 'PDF saved on this device');
   }
@@ -52,7 +60,12 @@ class _MorningEveningAzkarScreenState
       ),
     );
     if (confirmed == true) {
-      await widget.controller.removePdf(AzkarCategory.morningEvening);
+      try {
+        await widget.controller.removePdf(AzkarCategory.morningEvening);
+      } catch (_) {
+        if (mounted) showMessage(context, 'The saved PDF could not be removed');
+        return;
+      }
       if (mounted) showMessage(context, 'PDF removed');
     }
   }
