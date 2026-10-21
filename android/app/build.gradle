@@ -29,9 +29,8 @@ android {
 
     defaultConfig {
         applicationId = "com.gityy34.tasbeh"
-        // Keep the APK installable on current Android phones and older devices;
-        // Flutter and the app's dependencies support API 21 and above.
-        minSdk = 21
+        // flutter_local_notifications requires API 24; this still covers Android 12+.
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
