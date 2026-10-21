@@ -32,7 +32,10 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey<String>('daily-azkar-next')));
     await tester.pump();
-    expect(find.text('Page 2 of 2'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('daily-azkar-footer-page')),
+      findsOneWidget,
+    );
 
     await tester.enterText(
       find.byKey(const ValueKey<String>('daily-azkar-editor')),
@@ -44,7 +47,10 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey<String>('daily-azkar-back')));
     await tester.pump();
-    expect(find.text('Page 1 of 2'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey<String>('daily-azkar-header-page')),
+      findsOneWidget,
+    );
     final editor = tester.widget<TextField>(
       find.byKey(const ValueKey<String>('daily-azkar-editor')),
     );
