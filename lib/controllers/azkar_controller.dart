@@ -205,7 +205,7 @@ class AzkarController extends ChangeNotifier {
 
     for (final entry in _library.dailyEntries) {
       if (entry.text.trim().isEmpty || !entry.notifications.enabled) continue;
-      final title = 'Tasbeh - \${entry.displayTitle}';
+      final title = 'Tasbeh - ${entry.displayTitle}';
       await service.scheduleWeekly(
         AzkarWeeklyNotification(
           notificationId: entry.morningNotificationId,
