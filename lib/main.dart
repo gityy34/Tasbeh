@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'controllers/azkar_controller.dart';
 import 'controllers/reminder_controller.dart';
 import 'models/app_models.dart';
 import 'models/tasbeh_reminder.dart';
+import 'repositories/azkar_repository.dart';
 import 'repositories/reminder_repository.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
+import 'services/azkar_pdf_service.dart';
 import 'services/notification_service.dart';
 import 'services/storage_service.dart';
 import 'state/tasbeh_controller.dart';
@@ -22,10 +25,16 @@ Future<void> main() async {
     notifications: FlutterLocalNotificationService(),
   );
   await reminderController.initialize();
+  final azkarController = AzkarController(
+    repository: PreferencesAzkarRepository(),
+    pdfService: const MethodChannelAzkarPdfService(),
+  );
+  await azkarController.initialize();
   runApp(
     TasbehApp(
       controller: controller,
       reminderController: reminderController,
+      azkarController: azkarController,
     ),
   );
 }
@@ -35,10 +44,12 @@ class TasbehApp extends StatefulWidget {
     super.key,
     required this.controller,
     required this.reminderController,
+    required this.azkarController,
   });
 
   final TasbehController controller;
   final ReminderController reminderController;
+  final AzkarController azkarController;
 
   @override
   State<TasbehApp> createState() => _TasbehAppState();
@@ -132,6 +143,7 @@ class _TasbehAppState extends State<TasbehApp>
         builder: (_) => HomeScreen(
           controller: _controller,
           reminderController: widget.reminderController,
+          azkarController: widget.azkarController,
         ),
       ),
       (_) => false,
@@ -173,6 +185,7 @@ class _TasbehAppState extends State<TasbehApp>
       home: SplashScreen(
         controller: _controller,
         reminderController: widget.reminderController,
+        azkarController: widget.azkarController,
       ),
     );
   }

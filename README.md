@@ -8,12 +8,12 @@ large touch targets, persistent checkpoints, and device-local daily reminders.
 - `lib/models`: serializable settings, checkpoint, and reminder models.
 - `lib/services`: persistence, notification, permission, and haptic boundaries.
 - `lib/repositories`: schema-versioned reminder persistence.
-- `lib/controllers`: reminder scheduling and state coordination.
+- `lib/controllers`: reminder scheduling and offline Azkar content coordination.
 - `lib/state`: counter state and application controller.
 - `lib/theme`: theme and palette definitions.
 - `lib/widgets`: reusable counter, splash artwork, and controls.
 - `lib/screens`: app screens.
-- `test`: counter and persistence-focused tests.
+- `test`: counter, reminder, PDF metadata and editable Azkar page tests.
 
 ## Run
 
@@ -50,6 +50,12 @@ a reminder. Exact alarm access is optional; when it is unavailable, reminders
 use Android's inexact fallback and may be delayed. Reminder scheduling is local
 and needs no account, Firebase, or internet connection. Configure a real Android
 release keystore before publishing; no signing credentials are included here.
+
+Azkar content is also offline-first. The Subah-o-Shaam section copies a selected
+PDF into app-private storage and renders it with Android's native PDF renderer.
+Rozana ke Azkar stores user-pasted verified text as editable local pages. The
+PDF and surrounding screens follow the app's responsive Light, Dark and Auto
+themes; PDF page content itself is not recolored or altered.
 
 ## Versioning
 

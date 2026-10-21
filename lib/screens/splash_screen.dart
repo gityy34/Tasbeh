@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../controllers/azkar_controller.dart';
 import '../controllers/reminder_controller.dart';
 import '../navigation.dart';
 import '../state/tasbeh_controller.dart';
@@ -13,10 +14,12 @@ class SplashScreen extends StatefulWidget {
     super.key,
     required this.controller,
     this.reminderController,
+    this.azkarController,
   });
 
   final TasbehController controller;
   final ReminderController? reminderController;
+  final AzkarController? azkarController;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -38,6 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
         HomeScreen(
           controller: widget.controller,
           reminderController: widget.reminderController,
+          azkarController: widget.azkarController,
         ),
       ),
     );

@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../content/tasbeeh_catalog.dart';
+import '../controllers/azkar_controller.dart';
 import '../controllers/reminder_controller.dart';
 import '../navigation.dart';
 import '../services/haptic_service.dart';
 import '../state/tasbeh_controller.dart';
 import '../theme/app_theme.dart';
 import '../widgets/water_counter.dart';
+import 'azkar_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 
@@ -17,18 +19,22 @@ class HomeScreen extends StatelessWidget {
     super.key,
     required this.controller,
     this.reminderController,
+    this.azkarController,
     this.hapticService = const PlatformTargetHapticService(),
   });
 
   final TasbehController controller;
   final ReminderController? reminderController;
+  final AzkarController? azkarController;
   final TargetHapticService hapticService;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const _TasbehCategoryMenu(),
+        title: _TasbehCategoryMenu(
+          onSelected: (value) => _openAzkarCategory(context, value),
+        ),
         actions: [
           IconButton(
             tooltip: 'Saved checkpoints',
@@ -64,10 +70,24 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _openAzkarCategory(BuildContext context, String value) {
+    final azkarController = this.azkarController;
+    if (azkarController == null) {
+      showMessage(context, 'Azkar content is not available in this preview');
+      return;
+    }
+    final page = value == 'daily-azkar'
+        ? DailyAzkarScreen(controller: azkarController)
+        : MorningEveningAzkarScreen(controller: azkarController);
+    Navigator.of(context).push(AppRoute.fade(page));
+  }
 }
 
 class _TasbehCategoryMenu extends StatelessWidget {
-  const _TasbehCategoryMenu();
+  const _TasbehCategoryMenu({required this.onSelected});
+
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +103,7 @@ class _TasbehCategoryMenu extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
       ),
       elevation: 8,
-      onSelected: (_) {},
+      onSelected: onSelected,
       itemBuilder: (context) => [
         PopupMenuItem<String>(
           value: 'morning-evening-azkar',
