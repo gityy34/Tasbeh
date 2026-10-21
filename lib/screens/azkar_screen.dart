@@ -409,7 +409,7 @@ class _DailyAzkarScreenState extends State<DailyAzkarScreen> {
     _editing = false;
     _loadCurrentEntry();
     setState(() {});
-    showMessage(context, 'Azkar saved for \${azkarWeekdayFromNumber(_weekday).label}');
+    showMessage(context, 'Azkar saved for ${azkarWeekdayFromNumber(_weekday).label}');
   }
 
   void _cancelEditing() {
@@ -739,7 +739,7 @@ class _DailyAzkarReadOnly extends StatelessWidget {
               )
             : Center(
                 child: Text(
-                  'No Azkar saved for \${weekday.label} yet.',
+                  'No Azkar saved for ${weekday.label} yet.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: scheme.onSurfaceVariant),
                 ),
@@ -788,7 +788,7 @@ class _DailyAzkarEditor extends StatelessWidget {
             for (final item in weekdays)
               DropdownMenuItem<int>(
                 value: item.number,
-                child: Text('\${item.label} (\${item.arabicLabel})'),
+                child: Text('${item.label} (${item.arabicLabel})'),
               ),
           ],
           onChanged: (value) {
@@ -835,7 +835,7 @@ class _DailyAzkarEditor extends StatelessWidget {
           icon: const Icon(Icons.notifications_active_outlined),
           label: Text(
             notificationSettings.enabled
-                ? 'Push notifications: \${_timeLabel(context, notificationSettings)}'
+                ? 'Push notifications: ${_timeLabel(context, notificationSettings)}'
                 : 'Push notifications: Off',
           ),
         ),
