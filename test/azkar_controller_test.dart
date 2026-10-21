@@ -137,8 +137,8 @@ class FakeAzkarPdfService implements AzkarPdfService {
   @override
   Future<PickedAzkarPdf?> pickAndStore(AzkarCategory category) async {
     return PickedAzkarPdf(
-      path: '/private/azkar/\${category.key}.pdf',
-      displayName: '\${category.key}.pdf',
+      path: '/private/azkar/${category.key}.pdf',
+      displayName: '${category.key}.pdf',
       pageCount: 3,
     );
   }
