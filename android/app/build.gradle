@@ -19,8 +19,8 @@ android {
         jvmTarget = "17"
     }
 
-    // Keep Flutter native libraries compatible with Android 15/16 devices
-    // that use different native page-size requirements.
+    // Compress and extract native libraries so Android 15/16 devices with
+    // 16 KB memory pages can install the APK safely.
     packagingOptions {
         jniLibs {
             useLegacyPackaging = true
