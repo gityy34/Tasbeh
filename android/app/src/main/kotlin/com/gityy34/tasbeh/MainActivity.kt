@@ -120,32 +120,38 @@ class MainActivity : FlutterFragmentActivity() {
         val directory = File(filesDir, "azkar_documents").apply { mkdirs() }
         val destination = File(directory, "$category.pdf")
         val temporary = File(directory, "$category.pdf.tmp")
-        var totalBytes = 0L
-        contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(temporary).use { output ->
-                val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
-                while (true) {
-                    val count = input.read(buffer)
-                    if (count <= 0) break
-                    totalBytes += count
-                    if (totalBytes > maxPdfBytes) {
-                        throw IllegalArgumentException("PDF is larger than 50 MB")
+        try {
+            var totalBytes = 0L
+            contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(temporary).use { output ->
+                    val buffer = ByteArray(DEFAULT_BUFFER_SIZE)
+                    while (true) {
+                        val count = input.read(buffer)
+                        if (count <= 0) break
+                        totalBytes += count
+                        if (totalBytes > maxPdfBytes) {
+                            throw IllegalArgumentException("PDF is larger than 50 MB")
+                        }
+                        output.write(buffer, 0, count)
                     }
-                    output.write(buffer, 0, count)
                 }
-            }
-        } ?: throw IllegalArgumentException("The selected file could not be read")
+            } ?: throw IllegalArgumentException("The selected file could not be read")
 
-        if (!temporary.renameTo(destination)) {
-            temporary.copyTo(destination, overwrite = true)
+            // Validate before replacing the previous good document.
+            val pageCount = getPageCount(temporary)
+            if (!temporary.renameTo(destination)) {
+                temporary.copyTo(destination, overwrite = true)
+                temporary.delete()
+            }
+            return mapOf(
+                "path" to destination.absolutePath,
+                "displayName" to displayName(uri),
+                "pageCount" to pageCount,
+            )
+        } catch (error: Exception) {
             temporary.delete()
+            throw error
         }
-        val pageCount = getPageCount(destination)
-        return mapOf(
-            "path" to destination.absolutePath,
-            "displayName" to displayName(uri),
-            "pageCount" to pageCount,
-        )
     }
 
     private fun displayName(uri: Uri): String {
