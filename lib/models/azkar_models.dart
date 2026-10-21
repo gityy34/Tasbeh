@@ -361,8 +361,16 @@ class AzkarLibrary {
       }
       var morningId = entry.morningNotificationId;
       var eveningId = entry.eveningNotificationId;
-      if (morningId <= 0) morningId = nextId++;
-      if (eveningId <= 0 || eveningId == morningId) eveningId = nextId++;
+      if (morningId <= 0) {
+        morningId = nextId++;
+      } else if (morningId >= nextId) {
+        nextId = morningId + 1;
+      }
+      if (eveningId <= 0 || eveningId == morningId) {
+        eveningId = nextId++;
+      } else if (eveningId >= nextId) {
+        nextId = eveningId + 1;
+      }
       entries.add(
         entry.copyWith(
           morningNotificationId: morningId,
