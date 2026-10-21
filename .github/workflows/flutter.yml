@@ -54,6 +54,14 @@ jobs:
       - name: Capture real UI screenshots
         run: flutter test --update-goldens --timeout 2m test/ui_screenshot_test.dart
 
+      - name: Compile Android Kotlin without packaging APK
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf 'flutter.sdk=%s\\n' "$FLUTTER_ROOT" > android/local.properties
+          (cd android && ./gradlew :app:compileReleaseKotlin --no-daemon)
+
       - name: Build universal release APK
         if: github.event_name != 'pull_request'
         run: flutter build apk --release --build-number "${GITHUB_RUN_NUMBER}"
