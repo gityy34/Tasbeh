@@ -7,8 +7,7 @@
         android:name="${applicationName}"
         android:icon="@drawable/ic_launcher"
         android:allowBackup="true"
-        android:supportsRtl="true"
-        android:extractNativeLibs="true">
+        android:supportsRtl="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
