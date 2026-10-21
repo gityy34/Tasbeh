@@ -333,7 +333,7 @@ class AzkarLibrary {
         .map(AzkarPdfDocument.fromJson)
         .toList(growable: false);
     final rawEntries = json['dailyEntries'] as List<dynamic>? ?? const [];
-    final entries = <DailyAzkarEntry>[];
+    final parsedEntries = <DailyAzkarEntry>[];
     for (var index = 0; index < rawEntries.length; index++) {
       final raw = rawEntries[index];
       if (raw is! Map<String, dynamic>) continue;
@@ -342,23 +342,39 @@ class AzkarLibrary {
         fallbackWeekday: (index % 7) + 1,
       );
       if (entry.id.isNotEmpty && entry.text.trim().isNotEmpty) {
-        entries.add(entry);
+        parsedEntries.add(entry);
       }
     }
+
     final storedNextId =
         (json['nextNotificationId'] as num?)?.toInt() ?? firstNotificationId;
-    final maxId = entries.fold<int>(
-      firstNotificationId - 1,
-      (max, entry) => [
-        max,
-        entry.morningNotificationId,
-        entry.eveningNotificationId,
-      ].reduce((a, b) => a > b ? a : b),
-    );
+    var nextId = storedNextId < firstNotificationId
+        ? firstNotificationId
+        : storedNextId;
+    final entries = <DailyAzkarEntry>[];
+    for (final parsed in parsedEntries) {
+      var entry = parsed;
+      if (storedSchema < 2) {
+        entry = entry.copyWith(
+          notifications: const AzkarNotificationSettings(enabled: false),
+        );
+      }
+      var morningId = entry.morningNotificationId;
+      var eveningId = entry.eveningNotificationId;
+      if (morningId <= 0) morningId = nextId++;
+      if (eveningId <= 0 || eveningId == morningId) eveningId = nextId++;
+      entries.add(
+        entry.copyWith(
+          morningNotificationId: morningId,
+          eveningNotificationId: eveningId,
+        ),
+      );
+    }
+
     return AzkarLibrary(
       pdfs: pdfs,
       dailyEntries: List.unmodifiable(entries),
-      nextNotificationId: storedNextId > maxId ? storedNextId : maxId + 1,
+      nextNotificationId: nextId,
     );
   }
 }
