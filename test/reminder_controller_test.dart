@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tasbeh/controllers/reminder_controller.dart';
+import 'package:tasbeh/models/azkar_models.dart';
 import 'package:tasbeh/models/tasbeh_reminder.dart';
 import 'package:tasbeh/repositories/reminder_repository.dart';
 import 'package:tasbeh/services/notification_service.dart';
@@ -213,6 +214,9 @@ class FakeNotificationService implements NotificationService {
   Future<void> scheduleDaily(TasbehReminder reminder) async {
     scheduled[reminder.notificationId] = reminder;
   }
+
+  @override
+  Future<void> scheduleWeekly(AzkarWeeklyNotification notification) async {}
 
   @override
   String? takeInitialPayload() {
