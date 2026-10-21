@@ -46,6 +46,10 @@ void main() {
       find.byKey(const ValueKey<String>('daily-azkar-title')),
       'Morning Monday',
     );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('daily-azkar-save')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<String>('daily-azkar-save')));
     await tester.pumpAndSettle();
 
@@ -94,6 +98,10 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey<String>('daily-azkar-edit')));
     await tester.pump();
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('daily-azkar-notifications')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(
       find.byKey(const ValueKey<String>('daily-azkar-notifications')),
     );
