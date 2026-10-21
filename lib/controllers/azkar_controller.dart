@@ -155,10 +155,13 @@ class AzkarController extends ChangeNotifier {
   }
 
   Future<void> deleteDailyEntry(String id) async {
-    final entry = _library.dailyEntries.cast<DailyAzkarEntry?>().firstWhere(
-          (item) => item?.id == id,
-          orElse: () => null,
-        );
+    DailyAzkarEntry? entry;
+    for (final item in _library.dailyEntries) {
+      if (item.id == id) {
+        entry = item;
+        break;
+      }
+    }
     if (entry == null) return;
     if (_notifications != null) {
       await _notifications.cancel(entry.morningNotificationId);
