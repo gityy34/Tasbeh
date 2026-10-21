@@ -779,7 +779,7 @@ class _DailyAzkarEditor extends StatelessWidget {
       children: [
         DropdownButtonFormField<int>(
           key: const ValueKey<String>('daily-azkar-weekday'),
-          value: weekday,
+          initialValue: weekday,
           decoration: const InputDecoration(
             labelText: 'Repeat weekday',
             prefixIcon: Icon(Icons.event_repeat_outlined),
