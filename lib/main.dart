@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'controllers/azkar_controller.dart';
 import 'controllers/reminder_controller.dart';
 import 'models/app_models.dart';
+import 'models/azkar_models.dart';
 import 'models/tasbeh_reminder.dart';
 import 'repositories/azkar_repository.dart';
 import 'repositories/reminder_repository.dart';
+import 'screens/azkar_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/azkar_pdf_service.dart';
@@ -20,15 +22,18 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final controller = TasbehController(PreferencesStorageService());
   await controller.initialize();
-  final reminderController = ReminderController(
-    repository: PreferencesReminderRepository(),
-    notifications: FlutterLocalNotificationService(),
-  );
-  await reminderController.initialize();
+  final notificationService = FlutterLocalNotificationService();
   final azkarController = AzkarController(
     repository: PreferencesAzkarRepository(),
     pdfService: const MethodChannelAzkarPdfService(),
+    notifications: notificationService,
   );
+  final reminderController = ReminderController(
+    repository: PreferencesReminderRepository(),
+    notifications: notificationService,
+    onUnhandledPayload: azkarController.handleNotificationPayload,
+  );
+  await reminderController.initialize();
   await azkarController.initialize();
   runApp(
     TasbehApp(
@@ -68,8 +73,10 @@ class _TasbehAppState extends State<TasbehApp>
     WidgetsBinding.instance.addObserver(this);
     _controller.addListener(_handleControllerChanged);
     widget.reminderController.onOpenReminder = _openReminder;
+    widget.azkarController.onOpenEntry = _openAzkarEntry;
     _scheduleNextThemeBoundary();
     unawaited(widget.reminderController.consumePendingNavigation());
+    unawaited(widget.azkarController.consumePendingNavigation());
   }
 
   @override
@@ -150,11 +157,26 @@ class _TasbehAppState extends State<TasbehApp>
     );
   }
 
+  Future<void> _openAzkarEntry(DailyAzkarEntry entry) async {
+    final navigator = _navigatorKey.currentState;
+    if (navigator == null) return;
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute<void>(
+        builder: (_) => DailyAzkarScreen(
+          controller: widget.azkarController,
+          initialWeekday: entry.weekday,
+        ),
+      ),
+      (_) => false,
+    );
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _controller.removeListener(_handleControllerChanged);
     widget.reminderController.onOpenReminder = null;
+    widget.azkarController.onOpenEntry = null;
     _themeBoundaryTimer?.cancel();
     super.dispose();
   }
