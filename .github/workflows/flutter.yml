@@ -59,7 +59,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          printf 'flutter.sdk=%s\\n' "$FLUTTER_ROOT" > android/local.properties
+          flutter_bin="$(readlink -f "$(command -v flutter)")"
+          flutter_sdk="$(cd "$(dirname "${flutter_bin}")/.." && pwd)"
+          printf 'flutter.sdk=%s\\n' "${flutter_sdk}" > android/local.properties
           (cd android && ./gradlew :app:compileReleaseKotlin --no-daemon)
 
       - name: Build universal release APK
