@@ -861,7 +861,7 @@ class _DailyAzkarEditor extends StatelessWidget {
     final evening = localizations.formatTimeOfDay(
       TimeOfDay(hour: settings.eveningHour, minute: settings.eveningMinute),
     );
-    return '\$morning / \$evening';
+    return '$morning / $evening';
   }
 }
 
