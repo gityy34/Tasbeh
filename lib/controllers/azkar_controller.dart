@@ -279,12 +279,25 @@ class AzkarController extends ChangeNotifier {
 
   _AzkarNotificationIds _notificationIdsFor(DailyAzkarEntry? existing) {
     var next = _library.nextNotificationId;
+    final used = <int>{
+      for (final entry in _library.dailyEntries) ...[
+        entry.morningNotificationId,
+        entry.eveningNotificationId,
+      ],
+    }..remove(0);
     var morning = existing?.morningNotificationId ?? 0;
     var evening = existing?.eveningNotificationId ?? 0;
     if (morning <= 0) {
+      while (used.contains(next)) {
+        next += 1;
+      }
       morning = next++;
+      used.add(morning);
     }
     if (evening <= 0 || evening == morning) {
+      while (used.contains(next)) {
+        next += 1;
+      }
       evening = next++;
     }
     return _AzkarNotificationIds(
