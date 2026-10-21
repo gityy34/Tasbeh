@@ -7,11 +7,13 @@ import '../services/notification_permission_service.dart';
 import '../services/notification_service.dart';
 
 typedef ReminderOpenCallback = Future<void> Function(TasbehReminder? reminder);
+typedef NotificationPayloadCallback = Future<void> Function(String payload);
 
 class ReminderController extends ChangeNotifier {
   ReminderController({
     required ReminderRepository repository,
     required NotificationService notifications,
+    this.onUnhandledPayload,
   })  : _repository = repository,
         _notifications = notifications,
         permissions = NotificationPermissionService(notifications);
@@ -30,6 +32,7 @@ class ReminderController extends ChangeNotifier {
     exactAlarms: ExactAlarmState.unavailable,
   );
   ReminderOpenCallback? onOpenReminder;
+  final NotificationPayloadCallback? onUnhandledPayload;
   String? _pendingPayload;
 
   bool get isReady => _ready;
@@ -170,9 +173,17 @@ class ReminderController extends ChangeNotifier {
 
   Future<void> handlePayload(String payload) async {
     final decoded = decodeReminderPayload(payload);
-    if (decoded == null) return;
+    if (decoded == null) {
+      final delegate = onUnhandledPayload;
+      if (delegate != null) await delegate(payload);
+      return;
+    }
     final reminderId = decoded['reminderId'] as String?;
-    if (reminderId == null) return;
+    if (reminderId == null) {
+      final delegate = onUnhandledPayload;
+      if (delegate != null) await delegate(payload);
+      return;
+    }
     TasbehReminder? reminder;
     for (final item in _reminders) {
       if (item.id == reminderId) {

@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
+import '../models/azkar_models.dart';
 import '../models/tasbeh_reminder.dart';
 
 enum NotificationPermissionState { granted, denied, notRequired, unavailable }
@@ -35,6 +36,8 @@ abstract interface class NotificationService {
 
   Future<void> scheduleDaily(TasbehReminder reminder);
 
+  Future<void> scheduleWeekly(AzkarWeeklyNotification notification);
+
   Future<void> cancel(int notificationId);
 
   Future<Set<int>> pendingNotificationIds();
@@ -51,9 +54,9 @@ class FlutterLocalNotificationService implements NotificationService {
             const MethodChannel('com.gityy34.tasbeh/device');
 
   static const _channelId = 'tasbeh_daily_reminders';
-  static const _channelName = 'Daily Tasbeh reminders';
+  static const _channelName = 'Tasbeh reminders';
   static const _channelDescription =
-      'Daily reminders for selected Tasbeeh and Dua items.';
+      'Daily Tasbeeh and weekly Azkar reminders.';
 
   final FlutterLocalNotificationsPlugin _plugin;
   final MethodChannel _deviceChannel;
@@ -65,7 +68,9 @@ class FlutterLocalNotificationService implements NotificationService {
           AndroidFlutterLocalNotificationsPlugin>();
 
   @override
-  Future<void> initialize({required ValueChanged<String> onNotificationTap}) async {
+  Future<void> initialize({
+    required ValueChanged<String> onNotificationTap,
+  }) async {
     if (_initialized) return;
     tz_data.initializeTimeZones();
     await _setDeviceTimeZone();
@@ -184,8 +189,42 @@ class FlutterLocalNotificationService implements NotificationService {
   }
 
   @override
-  Future<void> cancel(int notificationId) =>
-      _plugin.cancel(id: notificationId);
+  Future<void> scheduleWeekly(AzkarWeeklyNotification notification) async {
+    await cancel(notification.notificationId);
+    final permission = await permissionStatus();
+    final exact = permission.exactAlarms != ExactAlarmState.denied;
+    final scheduledDate = nextWeeklyOccurrence(
+      weekday: notification.weekday,
+      hour: notification.hour,
+      minute: notification.minute,
+      now: tz.TZDateTime.now(tz.local),
+      location: tz.local,
+    );
+    await _plugin.zonedSchedule(
+      id: notification.notificationId,
+      title: notification.title,
+      body: notification.body,
+      scheduledDate: scheduledDate,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'tasbeh_weekly_azkar',
+          'Weekly Azkar reminders',
+          channelDescription: 'Weekly reminders for saved Azkar pages.',
+          importance: Importance.high,
+          priority: Priority.high,
+          category: AndroidNotificationCategory.reminder,
+        ),
+      ),
+      androidScheduleMode: exact
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
+      matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
+      payload: notification.payload(),
+    );
+  }
+
+  @override
+  Future<void> cancel(int notificationId) => _plugin.cancel(id: notificationId);
 
   @override
   Future<Set<int>> pendingNotificationIds() async {
@@ -221,6 +260,36 @@ tz.TZDateTime nextDailyOccurrence({
       now.year,
       now.month,
       now.day + 1,
+      hour,
+      minute,
+    );
+  }
+  return scheduled;
+}
+
+tz.TZDateTime nextWeeklyOccurrence({
+  required int weekday,
+  required int hour,
+  required int minute,
+  required tz.TZDateTime now,
+  required tz.Location location,
+}) {
+  final safeWeekday = weekday.clamp(DateTime.monday, DateTime.sunday).toInt();
+  final daysUntil = (safeWeekday - now.weekday) % DateTime.daysPerWeek;
+  var scheduled = tz.TZDateTime(
+    location,
+    now.year,
+    now.month,
+    now.day + daysUntil,
+    hour,
+    minute,
+  );
+  if (!scheduled.isAfter(now)) {
+    scheduled = tz.TZDateTime(
+      location,
+      now.year,
+      now.month,
+      now.day + daysUntil + DateTime.daysPerWeek,
       hour,
       minute,
     );

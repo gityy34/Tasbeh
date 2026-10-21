@@ -308,178 +308,369 @@ class _PdfPage extends StatelessWidget {
   }
 }
 
+
 class DailyAzkarScreen extends StatefulWidget {
   const DailyAzkarScreen({
     super.key,
     required this.controller,
+    this.initialWeekday = 1,
   });
 
   final AzkarController controller;
+  final int initialWeekday;
 
   @override
   State<DailyAzkarScreen> createState() => _DailyAzkarScreenState();
 }
 
 class _DailyAzkarScreenState extends State<DailyAzkarScreen> {
-  late TextEditingController _textController;
-  int _page = 0;
+  late final TextEditingController _textController;
+  late final TextEditingController _titleController;
+  late int _weekday;
+  bool _editing = false;
+  AzkarNotificationSettings _notificationSettings =
+      const AzkarNotificationSettings();
 
-  List<DailyAzkarEntry> get _entries => widget.controller.dailyEntries;
+  DailyAzkarEntry? get _entry =>
+      widget.controller.dailyEntryForWeekday(_weekday);
 
   @override
   void initState() {
     super.initState();
-    _textController = TextEditingController(text: _textForPage(0));
-  }
-
-  String _textForPage(int page) {
-    return page < _entries.length ? _entries[page].text : '';
+    _weekday = widget.initialWeekday.clamp(1, 7).toInt();
+    _textController = TextEditingController();
+    _titleController = TextEditingController();
+    _loadCurrentEntry();
+    widget.controller.addListener(_handleControllerChanged);
   }
 
   @override
   void dispose() {
+    widget.controller.removeListener(_handleControllerChanged);
     _textController.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
-  void _setPage(int page) {
+  void _handleControllerChanged() {
+    if (!mounted) return;
+    if (!_editing) _loadCurrentEntry();
+    setState(() {});
+  }
+
+  void _loadCurrentEntry() {
+    final entry = _entry;
+    final text = entry?.text ?? '';
+    final title = entry?.title ?? '';
     _textController.value = TextEditingValue(
-      text: _textForPage(page),
-      selection: TextSelection.collapsed(offset: _textForPage(page).length),
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
     );
-    setState(() => _page = page);
+    _titleController.value = TextEditingValue(
+      text: title,
+      selection: TextSelection.collapsed(offset: title.length),
+    );
+    _notificationSettings =
+        entry?.notifications ?? const AzkarNotificationSettings();
   }
 
-  Future<bool> _saveCurrent({bool showConfirmation = true}) async {
-    if (_textController.text.trim().isEmpty) {
-      if (mounted) showMessage(context, 'Paste some Azkar text before saving');
-      return false;
+  void _selectWeekday(int weekday) {
+    if (_weekday == weekday) return;
+    _weekday = weekday;
+    _loadCurrentEntry();
+    setState(() {});
+  }
+
+  Future<void> _save() async {
+    final text = _textController.text.trim();
+    if (text.isEmpty) {
+      showMessage(context, 'Paste or write Azkar text before saving');
+      return;
     }
-    final id = _page < _entries.length ? _entries[_page].id : null;
+
+    if (_notificationSettings.enabled) {
+      final granted = await widget.controller.requestNotificationPermission();
+      if (!granted && mounted) {
+        showMessage(
+          context,
+          'Notification permission was not granted. You can enable it in Android Settings.',
+        );
+      }
+    }
+
     await widget.controller.saveDailyEntry(
-      id: id,
-      text: _textController.text,
+      id: _entry?.id,
+      weekday: _weekday,
+      text: text,
+      title: _titleController.text.trim(),
+      notifications: _notificationSettings,
     );
-    if (mounted && showConfirmation) showMessage(context, 'Azkar text saved');
-    return true;
+    if (!mounted) return;
+    _editing = false;
+    _loadCurrentEntry();
+    setState(() {});
+    showMessage(context, 'Azkar saved for ${azkarWeekdayFromNumber(_weekday).label}');
   }
 
-  Future<void> _next() async {
-    if (!await _saveCurrent(showConfirmation: false)) return;
-    _setPage(_page + 1);
+  void _cancelEditing() {
+    _loadCurrentEntry();
+    setState(() => _editing = false);
   }
 
-  Future<void> _back() async {
-    if (_page == 0) return;
-    _setPage(_page - 1);
+  Future<void> _openNotificationSettings() async {
+    final updated = await showModalBottomSheet<AzkarNotificationSettings>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) {
+        var draft = _notificationSettings;
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final morning = TimeOfDay(
+              hour: draft.morningHour,
+              minute: draft.morningMinute,
+            );
+            final evening = TimeOfDay(
+              hour: draft.eveningHour,
+              minute: draft.eveningMinute,
+            );
+
+            Future<void> pickMorning() async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: morning,
+              );
+              if (picked == null) return;
+              setModalState(() {
+                draft = draft.copyWith(
+                  morningHour: picked.hour,
+                  morningMinute: picked.minute,
+                );
+              });
+            }
+
+            Future<void> pickEvening() async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: evening,
+              );
+              if (picked == null) return;
+              setModalState(() {
+                draft = draft.copyWith(
+                  eveningHour: picked.hour,
+                  eveningMinute: picked.minute,
+                );
+              });
+            }
+
+            return SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  4,
+                  20,
+                  20 + MediaQuery.viewInsetsOf(context).bottom,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Push Notifications',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'This schedule repeats every week on the selected weekday and works offline.',
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Enable weekly notifications'),
+                      subtitle: const Text('Two reminders: morning and evening'),
+                      value: draft.enabled,
+                      onChanged: (value) => setModalState(
+                        () => draft = draft.copyWith(enabled: value),
+                      ),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Morning notification'),
+                      subtitle: const Text('Default: 5:00 AM'),
+                      trailing: OutlinedButton(
+                        onPressed: pickMorning,
+                        child: Text(_formatTime(context, morning)),
+                      ),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Evening notification'),
+                      subtitle: const Text('Default: 5:00 PM'),
+                      trailing: OutlinedButton(
+                        onPressed: pickEvening,
+                        child: Text(_formatTime(context, evening)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    FilledButton(
+                      onPressed: () => Navigator.of(context).pop(draft),
+                      child: const Text('Save notification settings'),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (updated != null && mounted) {
+      setState(() => _notificationSettings = updated);
+    }
+  }
+
+  String _formatTime(BuildContext context, TimeOfDay time) {
+    return MaterialLocalizations.of(context).formatTimeOfDay(time);
+  }
+
+  Future<void> _move(int amount) async {
+    if (_editing) {
+      final text = _textController.text.trim();
+      if (text.isEmpty) {
+        showMessage(context, 'Save text before moving to another day');
+        return;
+      }
+      await _save();
+      if (!mounted) return;
+    }
+    final next = (_weekday + amount).clamp(1, 7).toInt();
+    if (next == _weekday) return;
+    _selectWeekday(next);
   }
 
   @override
   Widget build(BuildContext context) {
-    final total = _entries.length > _page ? _entries.length : _page + 1;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(AzkarCategory.daily.arabicLabel),
-      ),
-      body: AnimatedBuilder(
-        animation: widget.controller,
-        builder: (context, child) => SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) => SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(18, 14, 18, 24),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _DailyAzkarHeader(page: _page + 1, total: total),
-                      const SizedBox(height: 14),
-                      TextField(
-                        key: const ValueKey<String>('daily-azkar-editor'),
-                        controller: _textController,
-                        minLines: constraints.maxHeight < 700 ? 10 : 15,
-                        maxLines: 22,
-                        keyboardType: TextInputType.multiline,
-                        textDirection: TextDirection.rtl,
-                        textAlign: TextAlign.right,
-                        decoration: const InputDecoration(
-                          hintText: 'Paste your Azkar text here',
-                          alignLabelWithHint: true,
-                        ),
-                        style: const TextStyle(
-                          height: 1.8,
-                          fontFamilyFallback: [
-                            'Noto Naskh Arabic',
-                            'Noto Sans Arabic',
-                            'sans',
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      FilledButton.icon(
-                        key: const ValueKey<String>('save-daily-azkar'),
-                        onPressed: () => unawaited(_saveCurrent()),
-                        icon: const Icon(Icons.save_outlined),
-                        label: const Text('Save text'),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return AnimatedBuilder(
+      animation: widget.controller,
+      builder: (context, child) {
+        final entry = _entry;
+        final weekday = azkarWeekdayFromNumber(_weekday);
+        final displayTitle = entry?.displayTitle ?? weekday.label;
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Rozana ke Azkar'),
+            actions: [
+              IconButton(
+                key: const ValueKey<String>('daily-azkar-edit'),
+                tooltip: _editing ? 'Cancel editing' : 'Edit Azkar',
+                onPressed: () => _editing
+                    ? _cancelEditing()
+                    : setState(() {
+                        _editing = true;
+                        _loadCurrentEntry();
+                      }),
+                icon: Icon(
+                  _editing ? Icons.close_rounded : Icons.edit_outlined,
+                ),
+              ),
+            ],
+          ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(18, 12, 18, 24),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 620),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          _PageArrowButton(
-                            key: const ValueKey<String>('daily-azkar-back'),
-                            icon: Icons.arrow_back_rounded,
-                            label: 'Previous Azkar page',
-                            enabled: _page > 0,
-                            onPressed: _back,
+                          _DailyAzkarHeader(
+                            weekday: weekday,
+                            title: displayTitle,
                           ),
-                          Text(
-                            'Page ${_page + 1} of $total',
-                            key: const ValueKey<String>(
-                              'daily-azkar-footer-page',
+                          const SizedBox(height: 14),
+                          if (_editing)
+                            _DailyAzkarEditor(
+                              weekday: _weekday,
+                              titleController: _titleController,
+                              textController: _textController,
+                              notificationSettings: _notificationSettings,
+                              compact: constraints.maxHeight < 700,
+                              onWeekdayChanged: _selectWeekday,
+                              onNotificationSettings: _openNotificationSettings,
+                              onSave: () => unawaited(_save()),
+                            )
+                          else
+                            _DailyAzkarReadOnly(
+                              text: entry?.text ?? '',
+                              weekday: weekday,
                             ),
-                            style: Theme.of(context).textTheme.labelLarge,
+                          const SizedBox(height: 22),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _PageArrowButton(
+                                key: const ValueKey<String>('daily-azkar-back'),
+                                icon: Icons.arrow_back_rounded,
+                                label: 'Previous weekday Azkar',
+                                enabled: _weekday > 1,
+                                onPressed: () => unawaited(_move(-1)),
+                              ),
+                              Text(
+                                weekday.shortLabel,
+                                key: const ValueKey<String>(
+                                  'daily-azkar-weekday',
+                                ),
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              _PageArrowButton(
+                                key: const ValueKey<String>('daily-azkar-next'),
+                                icon: Icons.arrow_forward_rounded,
+                                label: 'Next weekday Azkar',
+                                enabled: _weekday < 7,
+                                onPressed: () => unawaited(_move(1)),
+                              ),
+                            ],
                           ),
-                          _PageArrowButton(
-                            key: const ValueKey<String>('daily-azkar-next'),
-                            icon: Icons.arrow_forward_rounded,
-                            label: 'Next Azkar page',
-                            enabled: true,
-                            onPressed: _next,
+                          const SizedBox(height: 10),
+                          Text(
+                            weekday.arabicLabel,
+                            textAlign: TextAlign.center,
+                            textDirection: TextDirection.rtl,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
-                      if (_entries.isNotEmpty) ...[
-                        const SizedBox(height: 20),
-                        Text(
-                          'Saved pages stay on this device and can be edited later.',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
 class _DailyAzkarHeader extends StatelessWidget {
-  const _DailyAzkarHeader({required this.page, required this.total});
+  const _DailyAzkarHeader({
+    required this.weekday,
+    required this.title,
+  });
 
-  final int page;
-  final int total;
+  final AzkarWeekday weekday;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Card(
+      key: const ValueKey<String>('daily-azkar-header'),
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Row(
@@ -494,16 +685,15 @@ class _DailyAzkarHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Rozana ke Azkar',
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
                         ),
                   ),
                   const SizedBox(height: 3),
-                  Text(
-                    'Page $page of $total',
-                    key: const ValueKey<String>('daily-azkar-header-page'),
-                  ),
+                  Text(weekday.label),
                 ],
               ),
             ),
@@ -511,6 +701,167 @@ class _DailyAzkarHeader extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _DailyAzkarReadOnly extends StatelessWidget {
+  const _DailyAzkarReadOnly({
+    required this.text,
+    required this.weekday,
+  });
+
+  final String text;
+  final AzkarWeekday weekday;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final hasText = text.trim().isNotEmpty;
+    return Card(
+      key: const ValueKey<String>('daily-azkar-read-only'),
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 260),
+        padding: const EdgeInsets.all(20),
+        alignment: Alignment.topRight,
+        child: hasText
+            ? SelectableText(
+                text,
+                textDirection: TextDirection.rtl,
+                textAlign: TextAlign.right,
+                style: const TextStyle(
+                  height: 1.85,
+                  fontFamilyFallback: [
+                    'Noto Naskh Arabic',
+                    'Noto Sans Arabic',
+                    'sans',
+                  ],
+                ),
+              )
+            : Center(
+                child: Text(
+                  'No Azkar saved for ${weekday.label} yet.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: scheme.onSurfaceVariant),
+                ),
+              ),
+      ),
+    );
+  }
+}
+
+class _DailyAzkarEditor extends StatelessWidget {
+  const _DailyAzkarEditor({
+    required this.weekday,
+    required this.titleController,
+    required this.textController,
+    required this.notificationSettings,
+    required this.compact,
+    required this.onWeekdayChanged,
+    required this.onNotificationSettings,
+    required this.onSave,
+  });
+
+  final int weekday;
+  final TextEditingController titleController;
+  final TextEditingController textController;
+  final AzkarNotificationSettings notificationSettings;
+  final bool compact;
+  final ValueChanged<int> onWeekdayChanged;
+  final VoidCallback onNotificationSettings;
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final weekdays = AzkarWeekday.values;
+    return Column(
+      key: const ValueKey<String>('daily-azkar-editor'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DropdownButtonFormField<int>(
+          key: const ValueKey<String>('daily-azkar-weekday'),
+          initialValue: weekday,
+          decoration: const InputDecoration(
+            labelText: 'Repeat weekday',
+            prefixIcon: Icon(Icons.event_repeat_outlined),
+          ),
+          items: [
+            for (final item in weekdays)
+              DropdownMenuItem<int>(
+                value: item.number,
+                child: Text('${item.label} (${item.arabicLabel})'),
+              ),
+          ],
+          onChanged: (value) {
+            if (value != null) onWeekdayChanged(value);
+          },
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const ValueKey<String>('daily-azkar-title'),
+          controller: titleController,
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(
+            labelText: 'Day or Azkar name',
+            prefixIcon: Icon(Icons.label_outline_rounded),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          key: const ValueKey<String>('daily-azkar-text-input'),
+          controller: textController,
+          minLines: compact ? 8 : 13,
+          maxLines: 24,
+          keyboardType: TextInputType.multiline,
+          textDirection: TextDirection.rtl,
+          textAlign: TextAlign.right,
+          decoration: const InputDecoration(
+            labelText: 'Azkar text',
+            hintText: 'Paste or write the Azkar text here',
+            alignLabelWithHint: true,
+          ),
+          style: const TextStyle(
+            height: 1.8,
+            fontFamilyFallback: [
+              'Noto Naskh Arabic',
+              'Noto Sans Arabic',
+              'sans',
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton.icon(
+          key: const ValueKey<String>('daily-azkar-notifications'),
+          onPressed: onNotificationSettings,
+          icon: const Icon(Icons.notifications_active_outlined),
+          label: Text(
+            notificationSettings.enabled
+                ? 'Push notifications: ${_timeLabel(context, notificationSettings)}'
+                : 'Push notifications: Off',
+          ),
+        ),
+        const SizedBox(height: 12),
+        FilledButton.icon(
+          key: const ValueKey<String>('daily-azkar-save'),
+          onPressed: onSave,
+          icon: const Icon(Icons.save_outlined),
+          label: const Text('Save'),
+        ),
+      ],
+    );
+  }
+
+  String _timeLabel(
+    BuildContext context,
+    AzkarNotificationSettings settings,
+  ) {
+    final localizations = MaterialLocalizations.of(context);
+    final morning = localizations.formatTimeOfDay(
+      TimeOfDay(hour: settings.morningHour, minute: settings.morningMinute),
+    );
+    final evening = localizations.formatTimeOfDay(
+      TimeOfDay(hour: settings.eveningHour, minute: settings.eveningMinute),
+    );
+    return '$morning / $evening';
   }
 }
 
