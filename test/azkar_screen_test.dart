@@ -72,6 +72,10 @@ void main() {
       find.byKey(const ValueKey<String>('daily-azkar-text-input')),
       'Tuesday Azkar',
     );
+    await tester.ensureVisible(
+      find.byKey(const ValueKey<String>('daily-azkar-save')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey<String>('daily-azkar-save')));
     await tester.pumpAndSettle();
 
