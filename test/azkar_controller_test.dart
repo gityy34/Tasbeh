@@ -102,6 +102,39 @@ void main() {
     expect(notifications.cancelled, containsAll([20000, 20001]));
   });
 
+  test('new weekday pages skip notification IDs already in storage', () async {
+    final repository = MemoryAzkarRepository();
+    await repository.write(
+      AzkarLibrary(
+        pdfs: const [],
+        dailyEntries: [
+          DailyAzkarEntry(
+            id: 'monday',
+            text: 'Monday',
+            savedAt: DateTime(2026, 1, 1),
+            weekday: 1,
+            morningNotificationId: 20000,
+            eveningNotificationId: 20001,
+          ),
+        ],
+      ),
+    );
+    final controller = AzkarController(
+      repository: repository,
+      pdfService: FakeAzkarPdfService(),
+    );
+    await controller.initialize();
+
+    await controller.saveDailyEntry(
+      weekday: 2,
+      text: 'Tuesday',
+    );
+
+    final tuesday = controller.dailyEntryForWeekday(2)!;
+    expect(tuesday.morningNotificationId, 20002);
+    expect(tuesday.eveningNotificationId, 20003);
+  });
+
   test('notification payload resolves the correct weekday entry', () async {
     final controller = AzkarController(
       repository: MemoryAzkarRepository(),
