@@ -5,7 +5,6 @@
         android:label="Tasbeh"
         android:name="${applicationName}"
         android:icon="@drawable/ic_launcher"
-        android:extractNativeLibs="true"
         android:allowBackup="true"
         android:supportsRtl="true">
         <activity
