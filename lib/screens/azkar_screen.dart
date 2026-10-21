@@ -423,6 +423,9 @@ class _DailyAzkarScreenState extends State<DailyAzkarScreen> {
                           ),
                           Text(
                             'Page ${_page + 1} of $total',
+                            key: const ValueKey<String>(
+                              'daily-azkar-footer-page',
+                            ),
                             style: Theme.of(context).textTheme.labelLarge,
                           ),
                           _PageArrowButton(
@@ -484,7 +487,10 @@ class _DailyAzkarHeader extends StatelessWidget {
                         ),
                   ),
                   const SizedBox(height: 3),
-                  Text('Page $page of $total'),
+                  Text(
+                    'Page $page of $total',
+                    key: const ValueKey<String>('daily-azkar-header-page'),
+                  ),
                 ],
               ),
             ),
