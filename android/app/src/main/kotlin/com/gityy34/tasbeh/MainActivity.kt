@@ -7,7 +7,11 @@ import android.graphics.Color
 import android.graphics.Matrix
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
+import android.os.Build
 import android.os.ParcelFileDescriptor
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.provider.OpenableColumns
 import androidx.activity.result.contract.ActivityResultContracts
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -51,6 +55,19 @@ class MainActivity : FlutterFragmentActivity() {
         }
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
+            "com.gityy34.tasbeh/haptics",
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "targetCompleted" -> {
+                    vibrateForTargetCompletion()
+                    result.success(null)
+                }
+
+                else -> result.notImplemented()
+            }
+        }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
             channelName,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -59,6 +76,27 @@ class MainActivity : FlutterFragmentActivity() {
                 "deletePdf" -> deletePdf(call, result)
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun vibrateForTargetCompletion() {
+        val vibrator: Vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            getSystemService(VibratorManager::class.java).defaultVibrator
+        } else {
+            getSystemService(Vibrator::class.java)
+        }
+        if (!vibrator.hasVibrator()) return
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    120L,
+                    VibrationEffect.DEFAULT_AMPLITUDE,
+                ),
+            )
+        } else {
+            vibrator.vibrate(120L)
         }
     }
 
