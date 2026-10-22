@@ -110,6 +110,11 @@ void main() {
     final vibrationSwitch =
         find.byKey(const ValueKey<String>('target-vibration-switch'));
     expect(controller.settings.vibrateOnTarget, isTrue);
+    expect(find.text('Vibration on Target achieved'), findsOneWidget);
+    expect(
+      find.text('Give a short haptic feedback when the selected target is reached.'),
+      findsNothing,
+    );
     await tester.tap(vibrationSwitch);
     await tester.pump();
     expect(controller.settings.vibrateOnTarget, isFalse);
