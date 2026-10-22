@@ -85,10 +85,7 @@ class SettingsScreen extends StatelessWidget {
               child: SwitchListTile.adaptive(
                 key: const ValueKey<String>('target-vibration-switch'),
                 secondary: const Icon(Icons.vibration_rounded),
-                title: const Text('Vibrate after target completion'),
-                subtitle: const Text(
-                  'Give a short haptic feedback when the selected target is reached.',
-                ),
+                title: const Text('Vibration on Target achieved'),
                 value: controller.settings.vibrateOnTarget,
                 onChanged: (value) =>
                     unawaited(controller.setVibrateOnTarget(value)),
